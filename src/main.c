@@ -1,3 +1,5 @@
+// echo 'e001000000' | python3 -m ledgerblue.runScript --apdu
+// echo 'e001000000' | LEDGER_PROXY_ADDRESS=127.0.0.1 LEDGER_PROXY_PORT=9999 python3 -m ledgerblue.runScript --apdu
 #include "os.h"
 #include <os_io_seproxyhal.h>
 #include "glyphs.h"
