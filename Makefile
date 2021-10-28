@@ -68,7 +68,7 @@ endif
 ifneq ($(BOLOS_ENV),)
 $(info BOLOS_ENV=$(BOLOS_ENV))
 CLANGPATH := $(BOLOS_ENV)/clang-arm-fropi/bin/
-GCCPATH   := $(BOLOS_ENV)/gcc-arm-none-eabi-10-2020-q4-major/bin/
+GCCPATH   := $(BOLOS_ENV)/gcc-arm-none-eabi-10.3-2021.10/bin/
 else
 $(info BOLOS_ENV is not set: falling back to CLANGPATH and GCCPATH)
 endif
