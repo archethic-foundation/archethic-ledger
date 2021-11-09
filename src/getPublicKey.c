@@ -30,7 +30,10 @@ void handleGetPublicKey(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint16_t da
 	cx_ecfp_public_key_t publicKey;
 	uint8_t signature[100];
 	unsigned int info = 0;
-	uint8_t hash_archethic[32] = {0xa7, 0xf9, 0x84, 0xd0, 0x0e, 0x81, 0xd1, 0x26, 0x99, 0x71, 0x9f, 0xff, 0xc1, 0xca, 0xbd, 0x14, 0x93, 0x7a, 0xda, 0x86, 0x7d, 0x4b, 0x85, 0xdc, 0x25, 0xfe, 0xf3, 0xbf, 0xab, 0x0a, 0x95, 0x0a};
+	uint8_t data[] = {'a', 'r', 'c', 'h', 'e', 't', 'h', 'i', 'c'};
+	uint8_t hash_archethic[32];
+	cx_hash_sha256(data, sizeof(data), hash_archethic, 32);
+	PRINTF("Hash:\n %.*h \n", 32, hash_archethic);
 
 	os_perso_derive_node_bip32(CX_CURVE_256K1, bip32Path, 5, keySeed, NULL);
 	PRINTF("Priv Key:\n %.*h \n", 32, keySeed);
