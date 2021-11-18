@@ -83,5 +83,3 @@ extern ux_state_t ux;
 #define SW_OK 0x9000
 
 void deriveArchEthicKeyPair(uint32_t keyIndex, cx_ecfp_private_key_t *privateKey, cx_ecfp_public_key_t *publicKey);
-void bin2hex(uint8_t *dst, uint8_t *data, uint64_t inlen);
-int bin2dec(uint8_t *dst, uint64_t n);
