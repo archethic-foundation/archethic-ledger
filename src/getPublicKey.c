@@ -33,7 +33,6 @@ static unsigned int ui_getPublicKey_approve_button(unsigned int button_mask, uns
 
     case BUTTON_EVT_RELEASED | BUTTON_RIGHT: // APPROVE
         deriveArchEthicKeyPair(0, NULL, &publicKey);
-
         for (int v = 0; v < publicKey.W_len; v++)
             G_io_apdu_buffer[v] = publicKey.W[v];
 
