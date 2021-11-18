@@ -3,10 +3,11 @@
 #include "os.h"
 #include <os_io_seproxyhal.h>
 #include "glyphs.h"
-#include "ux.h"
+#include "archethic.h"
 #include <stdint.h>
 #include <stdbool.h>
 
+commandContext global;
 ux_state_t ux;
 static const ux_menu_entry_t menu_main[];
 
@@ -81,7 +82,7 @@ static handler_fn_t *lookupHandler(uint8_t ins)
 
 static void archethic_main(void)
 {
-
+	global.calcTxnHashContext.initialized = false;
 	volatile unsigned int rx = 0;
 	volatile unsigned int tx = 0;
 	volatile unsigned int flags = 0;
