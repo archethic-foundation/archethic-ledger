@@ -1,0 +1,6 @@
+
+# remove build folder or developers from repo
+./bin
+./debug
+./dev-env
+./obj
