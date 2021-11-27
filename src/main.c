@@ -4,41 +4,14 @@
 #include <os_io_seproxyhal.h>
 #include "glyphs.h"
 #include "archethic.h"
+#include "ui/menu.h"
+
 #include <stdint.h>
 #include <stdbool.h>
 
 commandContext global;
-ux_state_t ux;
-static const ux_menu_entry_t menu_main[];
-
-static const ux_menu_entry_t menu_about[] = {
-
-	{
-		.menu = NULL,		 // another menu entry, displayed when this item is "entered"
-		.callback = NULL,	 // a function that takes a userid, called when this item is entered
-		.userid = 0,		 // a custom identifier, helpful for implementing custom menu behavior
-		.icon = NULL,		 // the glyph displayed next to the item text
-		.line1 = "Version",	 // the first line of text
-		.line2 = APPVERSION, // the second line of text; if NULL, line1 will be vertically centered
-		.text_x = 0,		 // the x offset of the lines of text; only used if non-zero
-		.icon_x = 0,		 // the x offset of the icon; only used if non-zero
-	},
-
-	{menu_main, NULL, 0, &C_icon_back, "Back", NULL, 61, 40},
-	UX_MENU_END,
-};
-
-static const ux_menu_entry_t menu_main[] = {
-	{NULL, NULL, 0, NULL, "ArchEthic Wallet", "Ready", 0, 0},
-	{menu_about, NULL, 0, NULL, "About", NULL, 0, 0},
-	{NULL, os_sched_exit, 0, &C_icon_dashboard, "Quit app", NULL, 50, 29},
-	UX_MENU_END,
-};
-
-void ui_idle(void)
-{
-	UX_MENU_DISPLAY(0, menu_main, NULL);
-}
+ux_state_t G_ux;
+bolos_ux_params_t G_ux_params;
 
 void io_exchange_with_code(uint16_t code, uint16_t tx)
 {
@@ -259,7 +232,8 @@ __attribute__((section(".boot"))) int main(void)
 				io_seproxyhal_init();
 				USB_power(0);
 				USB_power(1);
-				ui_idle();
+				
+				ui_menu_main();
 				archethic_main();
 			}
 			CATCH(EXCEPTION_IO_RESET)
