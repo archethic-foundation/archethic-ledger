@@ -10,6 +10,8 @@
 #include <cx.h>
 #include "archethic.h"
 
+cx_curve_t origin_curve;
+uint8_t origin_curve_type;
 static getPublicKeyContext_t *ctx = &global.getPublicKeyContext;
 
 static const bagl_element_t ui_getPublicKey_approve[] = {
@@ -28,15 +30,20 @@ static unsigned int ui_getPublicKey_approve_button(unsigned int button_mask, uns
     {
     case BUTTON_EVT_RELEASED | BUTTON_LEFT: // REJECT
         io_exchange_with_code(SW_USER_REJECTED, 0);
-        ui_idle();
+        ui_menu_main();
         break;
 
     case BUTTON_EVT_RELEASED | BUTTON_RIGHT: // APPROVE
-        deriveArchEthicKeyPair(0, NULL, &publicKey);
-        for (int v = 0; v < publicKey.W_len; v++)
-            G_io_apdu_buffer[v] = publicKey.W[v];
-        io_exchange_with_code(SW_OK, publicKey.W_len);
-        ui_idle();
+        getOriginPublicKey(origin_curve, &publicKey);
+        G_io_apdu_buffer[0] = origin_curve_type;
+
+        // Ledger Origin Device
+        G_io_apdu_buffer[1] = 4;
+        for (int v = 0; v < (int)publicKey.W_len; v++)
+            G_io_apdu_buffer[v + 2] = publicKey.W[v];
+
+        io_exchange_with_code(SW_OK, publicKey.W_len + 2);
+        ui_menu_main();
         break;
     }
     return 0;
@@ -44,6 +51,21 @@ static unsigned int ui_getPublicKey_approve_button(unsigned int button_mask, uns
 
 void handleGetPublicKey(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint16_t dataLength, volatile unsigned int *flags, volatile unsigned int *tx)
 {
+    origin_curve_type = p2;
+    switch (p2)
+    {
+    case 0:
+        origin_curve = CX_CURVE_SECP256K1;
+        break;
+    case 1:
+        origin_curve = CX_CURVE_NISTP256;
+        break;
+    case 2:
+        origin_curve = CX_CURVE_Ed25519;
+        break;
+    default:
+        break;
+    }
     memmove(ctx->typeStr, "Generate Public", 16);
     memmove(ctx->keyStr, "Key ?", 5);
     UX_DISPLAY(ui_getPublicKey_approve, NULL);

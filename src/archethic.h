@@ -83,4 +83,5 @@ extern ux_state_t ux;
 #define SW_USER_REJECTED 0x6985
 #define SW_OK 0x9000
 
-void deriveArchEthicKeyPair(uint32_t keyIndex, cx_ecfp_private_key_t *privateKey, cx_ecfp_public_key_t *publicKey);
+void getOriginPublicKey(cx_curve_t curve, cx_ecfp_public_key_t *publicKey);
+void deriveArchEthicKeyPair(cx_curve_t curve, uint32_t coin_type, uint32_t account, uint32_t address_index, cx_ecfp_private_key_t *privateKey, cx_ecfp_public_key_t *publicKey);

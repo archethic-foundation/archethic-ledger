@@ -39,8 +39,10 @@ UX_FLOW(ux_menu_main_flow,
         &ux_menu_exit_step,
         FLOW_LOOP);
 
-void ui_menu_main() {
-    if (G_ux.stack_count == 0) {
+void ui_menu_main()
+{
+    if (G_ux.stack_count == 0)
+    {
         ux_stack_push();
     }
 
@@ -55,15 +57,17 @@ UX_STEP_CB(ux_menu_back_step, pb, ui_menu_main(), {&C_icon_back, "Back"});
 // #2 screen: back button to main menu
 UX_FLOW(ux_menu_about_flow, &ux_menu_info_step, &ux_menu_back_step, FLOW_LOOP);
 
-void ui_menu_about() {
+void ui_menu_about()
+{
     ux_flow_init(0, ux_menu_about_flow, NULL);
 }
 
-
+/*
 void ui_idle(void)
 {
-    
+
     #ifdef HAVE_UX_LEGACY
         UX_MENU_DISPLAY(0, ui_menu_main, NULL);
     #endif
 }
+*/
