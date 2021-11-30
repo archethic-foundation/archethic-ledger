@@ -55,13 +55,13 @@ void handleGetPublicKey(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint16_t da
     switch (p2)
     {
     case 0:
-        origin_curve = CX_CURVE_SECP256K1;
+        origin_curve = CX_CURVE_Ed25519;
         break;
     case 1:
         origin_curve = CX_CURVE_NISTP256;
         break;
     case 2:
-        origin_curve = CX_CURVE_Ed25519;
+        origin_curve = CX_CURVE_SECP256K1;
         break;
     default:
         break;
