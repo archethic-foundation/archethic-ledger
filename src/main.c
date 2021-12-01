@@ -22,7 +22,8 @@ void io_exchange_with_code(uint16_t code, uint16_t tx)
 
 #define INS_GET_VERSION 0x01
 #define INS_GET_PUBLIC_KEY 0x02
-#define INS_SIGN_HASH 0x04
+#define INS_GET_ADDRESS 0x04
+#define INS_SIGN_HASH 0x08
 
 typedef void handler_fn_t(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint16_t dataLength, volatile unsigned int *flags, volatile unsigned int *tx);
 
@@ -232,7 +233,7 @@ __attribute__((section(".boot"))) int main(void)
 				io_seproxyhal_init();
 				USB_power(0);
 				USB_power(1);
-				
+
 				ui_menu_main();
 				archethic_main();
 			}
