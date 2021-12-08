@@ -1,6 +1,7 @@
 # Archethic Onchain Wallet Generator and Encoder, using V1 specifications from https://hackmd.io/@219_ne6IRI6utatg6Fc8ZA/B1g0TU0uK
 
 origin_public_key = "04523f9d4068555b8c30bd03507f8c4e454a399b39885555dba91477b3640047cbfb8201d11567faa7956b41bb4b7f207a0fd1641d77f32f53ed9f38b7ecff12fb"
+
 {_ok, ledger} = Base.decode16(origin_public_key, case: :lower)
 
 {_ok, version} = Base.decode16("01")

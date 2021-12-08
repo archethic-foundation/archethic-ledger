@@ -21,6 +21,19 @@ typedef struct
 
 typedef struct
 {
+    uint8_t hashType;
+    uint8_t addressIndex;
+    uint8_t curveType;
+
+    // NUL-terminated strings for display
+    uint8_t typeStr[40]; // variable-length
+    uint8_t keyStr[40];  // variable-length
+    uint8_t fullStr[77]; // variable length
+    uint8_t partialStr[13];
+} getAddressContext_t;
+
+typedef struct
+{
     uint32_t keyIndex;
     uint8_t hash[32];
     uint8_t hexHash[64];
@@ -50,6 +63,7 @@ typedef struct
 typedef union
 {
     getPublicKeyContext_t getPublicKeyContext;
+    getAddressContext_t getAddressContext;
     signHashContext_t signHashContext;
     calcTxnHashContext_t calcTxnHashContext;
 } commandContext;
@@ -84,4 +98,10 @@ extern ux_state_t ux;
 #define SW_OK 0x9000
 
 void getOriginPublicKey(cx_ecfp_public_key_t *publicKey);
-void deriveArchEthicKeyPair(cx_curve_t curve, uint32_t coin_type, uint32_t account, uint32_t address_index, cx_ecfp_private_key_t *privateKey, cx_ecfp_public_key_t *publicKey);
+void deriveArchEthicKeyPair(cx_curve_t curve, uint32_t coin_type, uint32_t account, uint32_t address_index,
+                            uint8_t *masterSeed, uint8_t masterSeedLen,
+                            cx_ecfp_private_key_t *privateKey, cx_ecfp_public_key_t *publicKey);
+
+void performECDH(uint8_t *ephPublicKey, uint8_t ephPublicKeySize, uint8_t *ecdhPointX);
+void generateArchEthicAddress(uint8_t hash_type, uint32_t address_index,
+                              uint8_t *encoded_wallet, uint8_t *wallet_len, uint32_t sequence_no);

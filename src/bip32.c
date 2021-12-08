@@ -177,7 +177,7 @@ static int hdw_bip32_ed25519(extended_private_key *key, const uint32_t *path, si
     cx_ecfp_scalar_mult(CX_CURVE_Ed25519, pub.W, pub.W_len, kLP, 32);
     be2le(kLP, 32);
 
-    cx_edward_compress_point(CX_CURVE_Ed25519, pub.W, pub.W_len);
+    cx_edwards_compress_point(CX_CURVE_Ed25519, pub.W, pub.W_len);
 
     // Step 1: compute kL/Kr child
     //   if less than 0x80000000 => setup 02|A|i in tmp
@@ -402,7 +402,7 @@ static int hdw_slip21(const uint8_t *sk, size_t sk_length, const uint8_t *seed, 
   return 0;
 }
 
-unsigned long archethic_derive_node_with_seed_key(unsigned int mode, cx_curve_t curve, const uint8_t *masterSeed, size_t masterSeedLen, const unsigned int *path, unsigned int pathLength, unsigned char *privateKey, unsigned char *chain, unsigned char *seed_key, unsigned int seed_key_length)
+unsigned long archethic_derive_node_with_seed_key(unsigned int mode, cx_curve_t curve, uint8_t *masterSeed, size_t masterSeedLen, const unsigned int *path, unsigned int pathLength, unsigned char *privateKey, unsigned char *chain, unsigned char *seed_key, unsigned int seed_key_length)
 {
   size_t seed_size, sk_length;
   extended_private_key key;
@@ -476,7 +476,7 @@ unsigned long archethic_derive_node_with_seed_key(unsigned int mode, cx_curve_t 
   return 0;
 }
 
-unsigned long archethic_derive_node_bip32(cx_curve_t curve, const uint8_t *masterSeed, size_t masterSeedLen, const uint32_t *path, size_t length, uint8_t *private_key, uint8_t *chain)
+unsigned long archethic_derive_node_bip32(cx_curve_t curve, uint8_t *masterSeed, size_t masterSeedLen, const uint32_t *path, size_t length, uint8_t *private_key, uint8_t *chain)
 {
   return archethic_derive_node_with_seed_key(HDW_NORMAL, curve, masterSeed, masterSeedLen, path, length, private_key, chain, NULL, 0);
 }

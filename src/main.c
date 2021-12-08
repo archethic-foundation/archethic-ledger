@@ -29,6 +29,7 @@ typedef void handler_fn_t(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint16_t 
 
 handler_fn_t handleGetVersion;
 handler_fn_t handleGetPublicKey;
+handler_fn_t handleGetAddress;
 handler_fn_t handleSignHash;
 
 static handler_fn_t *lookupHandler(uint8_t ins)
@@ -39,6 +40,8 @@ static handler_fn_t *lookupHandler(uint8_t ins)
 		return handleGetVersion;
 	case INS_GET_PUBLIC_KEY:
 		return handleGetPublicKey;
+	case INS_GET_ADDRESS:
+		return handleGetAddress;
 	case INS_SIGN_HASH:
 		return handleSignHash;
 	default:
