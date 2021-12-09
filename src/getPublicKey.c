@@ -9,6 +9,7 @@
 #include <os_io_seproxyhal.h>
 #include <cx.h>
 #include "archethic.h"
+#include "ui/display.h"
 
 static getPublicKeyContext_t *ctx = &global.getPublicKeyContext;
 
@@ -49,8 +50,9 @@ static unsigned int ui_getPublicKey_approve_button(unsigned int button_mask, uns
 
 void handleGetPublicKey(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint16_t dataLength, volatile unsigned int *flags, volatile unsigned int *tx)
 {
-    memmove(ctx->typeStr, "Generate Public", 16);
-    memmove(ctx->keyStr, "Key ?", 5);
-    UX_DISPLAY(ui_getPublicKey_approve, NULL);
+    // memmove(ctx->typeStr, "Generate Public", 16);
+    // memmove(ctx->keyStr, "Key ?", 5);
+    // UX_DISPLAY(ui_getPublicKey_approve, NULL);
+     ui_display_address();
     *flags |= IO_ASYNCH_REPLY;
 }
