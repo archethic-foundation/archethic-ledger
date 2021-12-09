@@ -4,27 +4,33 @@
 #include <os_io_seproxyhal.h>
 #include "cx.h"
 #include "display.h"
+#include "glyphs.h"
 
 static action_validate_cb g_validate_callback;
-static char g_address[65];
-static char g_bip32_path[60];
+// 1 + 4 + 130 + 4
+static char g_address[139];
+
+static char g_bip44_path[60];
 cx_ecfp_public_key_t publicKey;
 
 
 // Step with icon and text
-UX_STEP_NOCB(ux_display_confirm_addr_step, pn, {NULL, "Confirm Address"});
+UX_STEP_NOCB(ux_display_confirm_addr_step, bnnn_paging, {
+            .title = "Confirm Origin", 
+            .text = "Public Key",
+        });
 // Step with title/text for BIP32 path
 UX_STEP_NOCB(ux_display_path_step,
              bnnn_paging,
              {
-                 .title = "bip32 Path",
-                 .text = g_bip32_path,
+                 .title = "bip44 Path",
+                 .text = g_bip44_path,
              });
 // Step with title/text for address
 UX_STEP_NOCB(ux_display_address_step,
              bnnn_paging,
              {
-                 .title = "Address",
+                 .title = "Public Key",
                  .text = g_address,
              });
 // Step with approve button
@@ -32,7 +38,7 @@ UX_STEP_CB(ux_display_approve_step,
            pb,
            (*g_validate_callback)(true),
            {
-               NULL,
+               &C_icon_validate_14,
                "Approve",
            });
 // Step with reject button
@@ -40,7 +46,7 @@ UX_STEP_CB(ux_display_reject_step,
            pb,
            (*g_validate_callback)(false),
            {
-               NULL,
+               &C_icon_crossmark,
                "Reject",
            });
 
@@ -80,16 +86,17 @@ void ui_action_validate_pubkey(bool choice) {
 
 int ui_display_address() {
     
-    memset(g_bip32_path, 0, sizeof(g_bip32_path));
+    memset(g_bip44_path, 0, sizeof(g_bip44_path));
     memset(g_address, 0, sizeof(g_address));
 
     getOriginPublicKey(&publicKey);
     
-    snprintf(g_address, sizeof(g_address), "0x%.*H", publicKey.W_len, publicKey.W);
+    snprintf(g_address, sizeof(g_address), "0204%.*H9000", publicKey.W_len, publicKey.W);
     
-    // g_bip32_path = "m/44'/650'/ffff'/0'/0'" always
 
-    strncpy(g_bip32_path, "m/44'/650'/ffff'/0'/0'", 60);
+    // g_bip44_path = "m/44'/650'/ffff'/0'/0'" always
+
+    strncpy(g_bip44_path, "m/44'/650'/ffff'/0'/0'", 60);
 
     g_validate_callback = &ui_action_validate_pubkey;
 
