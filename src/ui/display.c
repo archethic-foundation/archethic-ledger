@@ -7,18 +7,17 @@
 #include "glyphs.h"
 
 static action_validate_cb g_validate_callback;
-// 1 + 4 + 130 + 4
-static char g_address[139];
+// 1 + 4 + 130
+static char g_address[135];
 
 static char g_bip44_path[60];
 cx_ecfp_public_key_t publicKey;
 
-
 // Step with icon and text
 UX_STEP_NOCB(ux_display_confirm_addr_step, bnnn_paging, {
-            .title = "Confirm Origin", 
-            .text = "Public Key",
-        });
+                                                            .title = "Confirm Origin",
+                                                            .text = "Public Key",
+                                                        });
 // Step with title/text for BIP32 path
 UX_STEP_NOCB(ux_display_path_step,
              bnnn_paging,
@@ -63,43 +62,40 @@ UX_FLOW(ux_display_pubkey_flow,
         &ux_display_approve_step,
         &ux_display_reject_step);
 
+void ui_action_validate_pubkey(bool choice)
+{
 
-void ui_action_validate_pubkey(bool choice) {
-
-    if (choice) {
-        
+    if (choice)
+    {
         G_io_apdu_buffer[0] = 2;
-
         // Ledger Origin Device
         G_io_apdu_buffer[1] = 4;
         for (int v = 0; v < (int)publicKey.W_len; v++)
             G_io_apdu_buffer[v + 2] = publicKey.W[v];
 
         io_exchange_with_code(SW_OK, publicKey.W_len + 2);
-    } else {
+    }
+    else
+    {
         io_exchange_with_code(SW_USER_REJECTED, 0);
-        
     }
 
     ui_menu_main();
 }
 
-int ui_display_address() {
-    
+int ui_display_address()
+{
+
     memset(g_bip44_path, 0, sizeof(g_bip44_path));
     memset(g_address, 0, sizeof(g_address));
 
     getOriginPublicKey(&publicKey);
-    
-    snprintf(g_address, sizeof(g_address), "0204%.*H9000", publicKey.W_len, publicKey.W);
-    
+    snprintf(g_address, sizeof(g_address), "0204%.*H", publicKey.W_len, publicKey.W);
 
     // g_bip44_path = "m/44'/650'/ffff'/0'/0'" always
-
     strncpy(g_bip44_path, "m/44'/650'/ffff'/0'/0'", 60);
 
     g_validate_callback = &ui_action_validate_pubkey;
-
     ux_flow_init(0, ux_display_pubkey_flow, NULL);
 
     return 0;
