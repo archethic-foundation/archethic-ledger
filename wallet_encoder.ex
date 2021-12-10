@@ -115,3 +115,8 @@ payload = tx_hash <> payload
 sign_apdu = sign_header <> lc <> payload
 IO.puts("\nSign APDU:")
 IO.puts(Base.encode16(sign_apdu))
+
+# elixir verify
+# public_key = Base.decode16!("", case: :lower)
+# sign = Base.decode16!("", case: :lower)
+# :crypto.verify(:ecdsa, :sha256, "archethic", sign, [public_key, :secp256k1])

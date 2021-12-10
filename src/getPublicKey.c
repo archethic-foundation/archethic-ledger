@@ -1,20 +1,9 @@
-// elixir verify
-// public_key = Base.decode16!("", case: :lower)
-// sign = Base.decode16!("", case: :lower)
-// :crypto.verify(:ecdsa, :sha256, "archethic", sign, [public_key, :secp256k1])
-
-#include <stdint.h>
-#include <stdbool.h>
 #include <os.h>
-#include <os_io_seproxyhal.h>
-#include <cx.h>
 #include "archethic.h"
 
 typedef void (*action_validate_cb)(bool);
-
 static action_validate_cb g_validate_callback;
-// 1 + 4 + 130
-static char g_public_key[135];
+static char g_public_key[135]; // 1 + 4 + 130
 
 static char g_bip44_path[60];
 cx_ecfp_public_key_t publicKey;
@@ -24,13 +13,15 @@ UX_STEP_NOCB(ux_display_confirm_addr_step, bnnn_paging, {
                                                             .title = "Confirm Origin",
                                                             .text = "Public Key",
                                                         });
-// Step with title/text for BIP32 path
+
+// Step with title/text for BIP44 path
 UX_STEP_NOCB(ux_display_path_step,
              bnnn_paging,
              {
                  .title = "bip44 Path",
                  .text = g_bip44_path,
              });
+
 // Step with title/text for public key
 UX_STEP_NOCB(ux_display_public_key_step,
              bnnn_paging,
@@ -38,6 +29,7 @@ UX_STEP_NOCB(ux_display_public_key_step,
                  .title = "Public Key",
                  .text = g_public_key,
              });
+
 // Step with approve button
 UX_STEP_CB(ux_display_approve_step,
            pb,
@@ -46,6 +38,7 @@ UX_STEP_CB(ux_display_approve_step,
                &C_icon_validate_14,
                "Approve",
            });
+
 // Step with reject button
 UX_STEP_CB(ux_display_reject_step,
            pb,
@@ -89,8 +82,9 @@ void ui_action_validate_pubkey(bool choice)
     ui_menu_main();
 }
 
-int ui_display_public_key()
+void handleGetPublicKey(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint16_t dataLength, volatile unsigned int *flags, volatile unsigned int *tx)
 {
+    *flags |= IO_ASYNCH_REPLY;
 
     memset(g_bip44_path, 0, sizeof(g_bip44_path));
     memset(g_public_key, 0, sizeof(g_public_key));
@@ -103,12 +97,4 @@ int ui_display_public_key()
 
     g_validate_callback = &ui_action_validate_pubkey;
     ux_flow_init(0, ux_display_pubkey_flow, NULL);
-
-    return 0;
-}
-
-void handleGetPublicKey(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint16_t dataLength, volatile unsigned int *flags, volatile unsigned int *tx)
-{
-    ui_display_public_key();
-    *flags |= IO_ASYNCH_REPLY;
 }
