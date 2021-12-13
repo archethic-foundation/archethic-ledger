@@ -98,10 +98,22 @@ extern ux_state_t ux;
 #define SW_OK 0x9000
 
 void getOriginPublicKey(cx_ecfp_public_key_t *publicKey);
+
 void deriveArchEthicKeyPair(cx_curve_t curve, uint32_t coin_type, uint32_t account, uint32_t address_index,
                             uint8_t *masterSeed, uint8_t masterSeedLen,
                             cx_ecfp_private_key_t *privateKey, cx_ecfp_public_key_t *publicKey);
 
 void performECDH(uint8_t *ephPublicKey, uint8_t ephPublicKeySize, uint8_t *ecdhPointX);
+
+void performECDSA(uint8_t *txHash, uint8_t txHashLen, uint8_t address_index,
+                  uint8_t *encoded_wallet, uint8_t *wallet_len, uint8_t sequence_no);
+
+void decryptWallet(uint8_t *ecdhPointX, uint8_t ecdhPointLen,
+                   uint8_t *dataBuffer, uint8_t dataLen,
+                   uint8_t *encodedWallet, uint8_t *walletLen);
+
+void generateKeyFromWallet(uint32_t address_index, uint8_t *encoded_wallet, uint8_t *wallet_len, uint32_t sequence_no,
+                           uint8_t *curve_type, cx_ecfp_private_key_t *privateKey, cx_ecfp_public_key_t *publicKey);
+
 void generateArchEthicAddress(uint8_t hash_type, uint32_t address_index,
                               uint8_t *encoded_wallet, uint8_t *wallet_len, uint32_t sequence_no);

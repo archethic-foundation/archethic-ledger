@@ -1,8 +1,5 @@
 #include "archethic.h"
 
-// uint8_t masterSeed[] = {0x9A, 0x34, 0xA2, 0x33, 0xC4, 0x8B, 0x77, 0xD4, 0x88, 0x56, 0xED, 0x17, 0x17, 0x92, 0xD0, 0xB1, 0x67, 0xF5, 0x0D, 0x9A, 0x81, 0x48, 0x76, 0x9E, 0x00, 0x0D, 0x1F, 0x3C, 0x75, 0xF7, 0x4C, 0x15};
-// uint8_t masterSeed[] = {0x6f, 0xa7, 0x74, 0x71, 0x8b, 0x0f, 0x08, 0x61, 0x01, 0xe7, 0xa0, 0xbf, 0x43, 0xf8, 0x19, 0x44, 0xf2, 0xee, 0xa0, 0x39, 0x2b, 0xc3, 0x45, 0x2a, 0xc3, 0x14, 0xcc, 0x44, 0x4f, 0x19, 0x97, 0x89, 0x89, 0xc6, 0x2b, 0xe4, 0x11, 0x0f, 0x8f, 0xd3, 0xe5, 0x43, 0x87, 0x5e, 0x9f, 0x3f, 0xe2, 0xe2, 0x24, 0x0f, 0x55, 0x4c, 0xf1, 0x6c, 0xfe, 0xbf, 0x67, 0x3b, 0x11, 0x2a, 0xc4, 0x4e, 0xc0, 0x16};
-
 void getOriginPublicKey(cx_ecfp_public_key_t *publicKey)
 {
     // setting default curve to CX_CURVE_SECP256K1
@@ -11,20 +8,48 @@ void getOriginPublicKey(cx_ecfp_public_key_t *publicKey)
 
 void performECDH(uint8_t *ephPublicKey, uint8_t ephPublicKeySize, uint8_t *ecdhPointX)
 {
-
     cx_ecfp_private_key_t originPrivateKey;
     deriveArchEthicKeyPair(CX_CURVE_SECP256K1, 650, 0xffff, 0, NULL, 0, &originPrivateKey, NULL);
     cx_ecdh(&originPrivateKey, CX_ECDH_X, ephPublicKey, ephPublicKeySize, ecdhPointX, 32);
 }
 
-void generateArchEthicAddress(uint8_t hash_type, uint32_t address_index, uint8_t *encoded_wallet, uint8_t *wallet_len, uint32_t sequence_no)
+void decryptWallet(uint8_t *ecdhPointX, uint8_t ecdhPointLen, uint8_t *dataBuffer, uint8_t dataLen, uint8_t *encodedWallet, uint8_t *walletLen)
+{
+    uint8_t aes_key_iv_tag[64] = {0};
+    cx_hash_sha512(ecdhPointX, ecdhPointLen, aes_key_iv_tag, sizeof(aes_key_iv_tag));
+    cx_hash_sha512(aes_key_iv_tag, sizeof(aes_key_iv_tag), aes_key_iv_tag, sizeof(aes_key_iv_tag));
+
+    uint8_t auth_key[32] = {0};
+    uint8_t auth_tag[32] = {0};
+    cx_hash_sha256(aes_key_iv_tag + 48, 16, auth_key, sizeof(auth_key));
+    cx_hmac_sha256(auth_key, sizeof(auth_key), dataBuffer + 65 + 16, 32, auth_tag, sizeof(auth_tag));
+    uint8_t verify_tag = memcmp(auth_tag, dataBuffer + 65, 16);
+
+    uint8_t wallet_key[32] = {0};
+    uint8_t wallet_iv[32] = {0};
+    if (verify_tag == 0)
+    {
+        cx_aes_key_t aesKey;
+        cx_aes_init_key(aes_key_iv_tag, 32, &aesKey);
+        cx_aes_iv(&aesKey, CX_DECRYPT | CX_CHAIN_CBC | CX_PAD_NONE, aes_key_iv_tag + 32, 16, dataBuffer + 65 + 16, 32, wallet_key, sizeof(wallet_key));
+
+        cx_hash_sha256(wallet_key, sizeof(wallet_key), wallet_iv, sizeof(wallet_iv));
+        cx_hash_sha256(wallet_iv, sizeof(wallet_iv), wallet_iv, sizeof(wallet_iv));
+
+        cx_aes_key_t walletAESkey;
+        cx_aes_init_key(wallet_key, 32, &walletAESkey);
+        *walletLen = cx_aes_iv(&walletAESkey, CX_ENCRYPT | CX_CHAIN_CTR | CX_LAST | CX_PAD_NONE, wallet_iv, 16, dataBuffer + 65 + 16 + 32, dataLen - 65 - 16 - 32, encodedWallet, *walletLen);
+    }
+}
+
+void generateKeyFromWallet(uint32_t address_index, uint8_t *encoded_wallet, uint8_t *wallet_len, uint32_t sequence_no, uint8_t *curve_type, cx_ecfp_private_key_t *privateKey, cx_ecfp_public_key_t *publicKey)
 {
     uint32_t coin_type = (encoded_wallet[5 * sequence_no + 34] << 8) | encoded_wallet[5 * sequence_no + 35];
     uint32_t account = (encoded_wallet[5 * sequence_no + 36] << 8) | encoded_wallet[5 * sequence_no + 37];
 
     cx_curve_t curve;
-    uint8_t curve_type = encoded_wallet[5 * sequence_no + 38];
-    switch (curve_type)
+    *curve_type = encoded_wallet[5 * sequence_no + 38];
+    switch (*curve_type)
     {
     case 0:
         curve = CX_CURVE_Ed25519;
@@ -39,9 +64,15 @@ void generateArchEthicAddress(uint8_t hash_type, uint32_t address_index, uint8_t
         curve = CX_CURVE_SECP256K1;
         break;
     }
+    deriveArchEthicKeyPair(curve, coin_type, account, address_index, encoded_wallet + 1, 32, privateKey, publicKey);
+}
+
+void generateArchEthicAddress(uint8_t hash_type, uint32_t address_index, uint8_t *encoded_wallet, uint8_t *wallet_len, uint32_t sequence_no)
+{
 
     cx_ecfp_public_key_t publicKey;
-    deriveArchEthicKeyPair(curve, coin_type, account, address_index, encoded_wallet + 1, 32, NULL, &publicKey);
+    uint8_t curve_type = 255;
+    generateKeyFromWallet(address_index, encoded_wallet, wallet_len, sequence_no, &curve_type, NULL, &publicKey);
 
     PRINTF("Public Key\n %.*h \n", publicKey.W_len, publicKey.W);
     encoded_wallet[0] = curve_type;
@@ -93,4 +124,19 @@ void deriveArchEthicKeyPair(cx_curve_t curve, uint32_t coin_type, uint32_t accou
     }
     explicit_bzero(rawPrivateKey, sizeof(rawPrivateKey));
     explicit_bzero(&walletPrivateKey, sizeof(walletPrivateKey));
+}
+
+void performECDSA(uint8_t *txHash, uint8_t txHashLen, uint8_t address_index, uint8_t *encoded_wallet, uint8_t *wallet_len, uint8_t sequence_no)
+{
+    uint8_t curve_type = 255;
+    cx_ecfp_private_key_t privateKey;
+    cx_ecfp_public_key_t publicKey;
+    unsigned int info = 0;
+    generateKeyFromWallet(address_index, encoded_wallet, wallet_len, sequence_no, &curve_type, &privateKey, &publicKey);
+    *wallet_len = cx_ecdsa_sign(&privateKey, CX_RND_TRNG, CX_SHA256, txHash, txHashLen, encoded_wallet, *wallet_len, &info);
+
+    encoded_wallet[*wallet_len] = curve_type;
+    encoded_wallet[(*wallet_len) + 1] = 0; // Onchain Wallet Key
+    memcpy(encoded_wallet + (*wallet_len) + 2, publicKey.W, publicKey.W_len);
+    *wallet_len += publicKey.W_len + 2;
 }

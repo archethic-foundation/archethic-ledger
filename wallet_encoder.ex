@@ -110,6 +110,9 @@ IO.puts(Base.encode16(address_apdu))
 
 {_ok, sign_header} = Base.decode16("E0080000")
 tx_hash = :crypto.hash(:sha256, "ARCHETHIC")
+IO.puts("\nTx Hash:")
+IO.puts(Base.encode16(tx_hash))
+
 payload = tx_hash <> payload
 {_ok, lc} = Base.decode16(Integer.to_string(byte_size(payload), 16))
 sign_apdu = sign_header <> lc <> payload

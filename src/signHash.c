@@ -1,20 +1,36 @@
-#include <stdint.h>
-#include <stdbool.h>
 #include <os.h>
-#include <os_io_seproxyhal.h>
-
-// exception codes
-#define SW_DEVELOPER_ERR 0x6B00
-#define SW_INVALID_PARAM 0x6B01
-#define SW_IMPROPER_INIT 0x6B02
-#define SW_USER_REJECTED 0x6985
-#define SW_OK 0x9000
+#include "archethic.h"
 
 void handleSignHash(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint16_t dataLength, volatile unsigned int *flags, volatile unsigned int *tx)
 {
-	for (int i = 0; i < dataLength; i++)
+	uint8_t txHash[64] = {0};
+	uint8_t txHashLen = 64;
+	switch (p1)
 	{
-		G_io_apdu_buffer[i] = dataBuffer[i];
+	case 0: // SHA256
+		memcpy(txHash, dataBuffer, 32);
+		txHashLen = 32;
+		dataBuffer += 32;
+		break;
+	default:
+		break;
 	}
-	io_exchange_with_code(SW_OK, dataLength);
+
+	uint8_t ecdhPointX[32] = {0};
+	performECDH(dataBuffer, 65, ecdhPointX);
+
+	uint8_t buffer[150] = {0};
+	uint8_t bufferLen = sizeof(buffer);
+
+	decryptWallet(ecdhPointX, sizeof(ecdhPointX), dataBuffer, dataLength, buffer, &bufferLen);
+
+	bufferLen = sizeof(buffer);
+	performECDSA(txHash, txHashLen, p2, buffer, &bufferLen, 0);
+
+	for (int i = 0; i < bufferLen; i++)
+	{
+		G_io_apdu_buffer[i] = buffer[i];
+	}
+	io_exchange_with_code(SW_OK, bufferLen);
+	//*flags |= IO_ASYNCH_REPLY;
 }
