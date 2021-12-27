@@ -117,3 +117,16 @@ void generateKeyFromWallet(uint32_t address_index, uint8_t *encoded_wallet, uint
 
 void generateArchEthicAddress(uint8_t hash_type, uint32_t address_index,
                               uint8_t *encoded_wallet, uint8_t *wallet_len, uint32_t sequence_no);
+
+
+typedef struct {
+    uint8_t hash_buffer[300];  
+    uint8_t hash_len;  
+} hash_struct_t;
+
+typedef struct {
+    uint8_t arch_address[180];
+    uint8_t arch_addr_len;
+} arch_addr_struct_t;
+
+typedef void (*action_validate_cb)(bool);

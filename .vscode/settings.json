@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "cx.h": "c",
+        "libcxng.h": "c"
+    }
+}

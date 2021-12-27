@@ -1,7 +1,6 @@
 #include <os.h>
 #include "archethic.h"
 
-typedef void (*action_validate_cb)(bool);
 static action_validate_cb g_validate_callback;
 static char g_public_key[135]; // 1 + 4 + 130
 
