@@ -117,3 +117,5 @@ void generateKeyFromWallet(uint32_t address_index, uint8_t *encoded_wallet, uint
 
 void generateArchEthicAddress(uint8_t hash_type, uint32_t address_index,
                               uint8_t *encoded_wallet, uint8_t *wallet_len, uint32_t sequence_no);
+
+void getBIP44Path(uint8_t address_index, uint8_t *encoded_wallet, uint8_t wallet_len, uint8_t sequence_no, char *string_bip_44, uint8_t *bip44_len);

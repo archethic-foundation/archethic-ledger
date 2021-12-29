@@ -11,6 +11,11 @@ void handleGetAddress(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint16_t data
     uint8_t walletLen = sizeof(encodedWallet);
 
     decryptWallet(ecdhPointX, sizeof(ecdhPointX), dataBuffer, dataLength, encodedWallet, &walletLen);
+
+    char bip44path[30];
+    uint8_t bip44pathlen;
+    getBIP44Path(p2, encodedWallet, walletLen, 0, bip44path, &bip44pathlen);
+
     generateArchEthicAddress(p1, p2, encodedWallet, &walletLen, 0);
 
     for (int i = 0; i < walletLen; i++)

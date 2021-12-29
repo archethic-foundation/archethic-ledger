@@ -42,6 +42,25 @@ void decryptWallet(uint8_t *ecdhPointX, uint8_t ecdhPointLen, uint8_t *dataBuffe
     }
 }
 
+void getBIP44Path(uint8_t address_index, uint8_t *encoded_wallet, uint8_t wallet_len, uint8_t sequence_no, char *string_bip_44, uint8_t *bip44_len)
+{
+    // strncpy(string_bip_44, "m/44'/650'/ffff'/0'/0'", 60);
+    int coin_type = (encoded_wallet[5 * sequence_no + 34] << 8) | encoded_wallet[5 * sequence_no + 35];
+    int account = (encoded_wallet[5 * sequence_no + 36] << 8) | encoded_wallet[5 * sequence_no + 37];
+
+    strncpy(string_bip_44, "m/44'/", 7);
+    snprintf(string_bip_44 + 6, 6, "%d", coin_type);
+
+    strncpy(string_bip_44 + strlen(string_bip_44), "'/", 3);
+    snprintf(string_bip_44 + strlen(string_bip_44), 6, "%d", account);
+
+    strncpy(string_bip_44 + strlen(string_bip_44), "'/0'/", 6);
+    snprintf(string_bip_44 + strlen(string_bip_44), 6, "%d", address_index);
+    strncpy(string_bip_44 + strlen(string_bip_44), "'", 2);
+
+    *bip44_len = strlen(string_bip_44);
+}
+
 void generateKeyFromWallet(uint32_t address_index, uint8_t *encoded_wallet, uint8_t *wallet_len, uint32_t sequence_no, uint8_t *curve_type, cx_ecfp_private_key_t *privateKey, cx_ecfp_public_key_t *publicKey)
 {
     uint32_t coin_type = (encoded_wallet[5 * sequence_no + 34] << 8) | encoded_wallet[5 * sequence_no + 35];

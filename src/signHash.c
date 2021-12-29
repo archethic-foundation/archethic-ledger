@@ -24,6 +24,10 @@ void handleSignHash(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint16_t dataLe
 
 	decryptWallet(ecdhPointX, sizeof(ecdhPointX), dataBuffer, dataLength, buffer, &bufferLen);
 
+	char bip44path[30];
+	uint8_t bip44pathlen;
+	getBIP44Path(p2, buffer, bufferLen, 0, bip44path, &bip44pathlen);
+
 	bufferLen = sizeof(buffer);
 	performECDSA(txHash, txHashLen, p2, buffer, &bufferLen, 0);
 
