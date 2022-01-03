@@ -5,6 +5,8 @@ static action_validate_cb g_validate_hash_callback;
 
 
 static char g_hash[67];
+static char g_bip44_path[30];
+
 
 hash_struct_t g_hash_ctx;
 
@@ -14,6 +16,14 @@ UX_STEP_NOCB(ux_confirm_sign_hash, bnnn_paging, {
                                                             .text = "to Sign",
                                                         });
 
+
+// Step with title/text for BIP44 path
+UX_STEP_NOCB(ux_display_hash_addr_bip44,
+             bnnn_paging,
+             {
+                 .title = "bip44 Path",
+                 .text = g_bip44_path,
+             });
 
 // Step with title/text for public key
 UX_STEP_NOCB(ux_display_sign_hash,
@@ -48,6 +58,7 @@ UX_STEP_CB(ux_display_reject_sign_hash,
 // #4 screen: reject button
 UX_FLOW(ux_display_sign_hash_main,
         &ux_confirm_sign_hash,
+		&ux_display_hash_addr_bip44,
         &ux_display_sign_hash,
 		&ux_display_approve_sign_hash,
 		&ux_display_reject_sign_hash
@@ -111,6 +122,15 @@ void handleSignHash(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint16_t dataLe
 	decryptWallet(g_hash_ctx.ecdhPointX, sizeof(g_hash_ctx.ecdhPointX), dataBuffer, dataLength, g_hash_ctx.buffer, &g_hash_ctx.bufferLen);
 
 	g_hash_ctx.bufferLen = sizeof(g_hash_ctx.buffer);
+
+	char bip44path[30];
+    uint8_t bip44pathlen;
+    getBIP44Path(p2, g_hash_ctx.buffer, g_hash_ctx.bufferLen, 0, bip44path, &bip44pathlen);
+
+    memset(g_bip44_path, 0, sizeof(g_bip44_path));
+    for(int i = 0; i < bip44pathlen; ++i) {
+        g_bip44_path[i] = bip44path[i];
+    }
 
     g_validate_hash_callback = &ui_validate_sign_hash;
 	ux_flow_init(0, ux_display_sign_hash_main, NULL);
