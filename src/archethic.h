@@ -119,3 +119,25 @@ void generateArchEthicAddress(uint8_t hash_type, uint32_t address_index,
                               uint8_t *encoded_wallet, uint8_t *wallet_len, uint32_t sequence_no);
 
 void getBIP44Path(uint8_t address_index, uint8_t *encoded_wallet, uint8_t wallet_len, uint8_t sequence_no, char *string_bip_44, uint8_t *bip44_len);
+
+
+typedef void (*action_validate_cb)(bool);
+
+typedef struct {
+    uint8_t arch_address[180];
+    uint8_t arch_addr_len;
+    uint8_t encodedWallet[100];
+    uint8_t walletLen;
+    uint8_t p1;
+    uint8_t p2;
+} arch_addr_struct_t;
+
+typedef struct { 
+    uint8_t ecdhPointX[32];
+    uint8_t buffer[150];
+    uint8_t bufferLen;
+    uint8_t txHash[64];
+    uint8_t txHashLen;
+    uint8_t p1;
+    uint8_t p2;
+} hash_struct_t;
