@@ -102,10 +102,10 @@ void generateArchEthicAddress(uint8_t hash_type, uint32_t address_index, uint8_t
 {
 
     cx_ecfp_public_key_t publicKey;
+    publicKey.W_len = 0;
     uint8_t curve_type = 255;
     generateKeyFromWallet(address_index, encoded_wallet, wallet_len, sequence_no, &curve_type, NULL, &publicKey);
 
-    PRINTF("Public Key\n %.*h \n", publicKey.W_len, publicKey.W);
     encoded_wallet[0] = curve_type;
     encoded_wallet[1] = 0; // onchain wallet origin
     memcpy(encoded_wallet + 2, publicKey.W, publicKey.W_len);
@@ -162,6 +162,7 @@ void performECDSA(uint8_t *txHash, uint8_t txHashLen, uint8_t address_index, uin
     uint8_t curve_type = 255;
     cx_ecfp_private_key_t privateKey;
     cx_ecfp_public_key_t publicKey;
+    publicKey.W_len = 0;
     unsigned int info = 0;
     generateKeyFromWallet(address_index, encoded_wallet, wallet_len, sequence_no, &curve_type, &privateKey, &publicKey);
     *wallet_len = cx_ecdsa_sign(&privateKey, CX_RND_TRNG, CX_SHA256, txHash, txHashLen, encoded_wallet, *wallet_len, &info);
