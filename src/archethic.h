@@ -1,5 +1,5 @@
 #include "ux.h"
-#include "bip32.h"
+#include "bip44.h"
 
 // Each command has some state associated with it that sticks around for the
 // life of the command. A separate context_t struct should be defined for each
@@ -97,6 +97,8 @@ extern ux_state_t ux;
 #define SW_USER_REJECTED 0x6985
 #define SW_OK 0x9000
 
+void io_exchange_with_code(uint16_t code, uint16_t tx);
+
 void getOriginPublicKey(cx_ecfp_public_key_t *publicKey);
 
 void deriveArchEthicKeyPair(cx_curve_t curve, uint32_t coin_type, uint32_t account, uint32_t address_index,
@@ -120,10 +122,10 @@ void generateArchEthicAddress(uint8_t hash_type, uint32_t address_index,
 
 void getBIP44Path(uint8_t address_index, uint8_t *encoded_wallet, uint8_t wallet_len, uint8_t sequence_no, char *string_bip_44, uint8_t *bip44_len);
 
-
 typedef void (*action_validate_cb)(bool);
 
-typedef struct {
+typedef struct
+{
     uint8_t arch_address[180];
     uint8_t arch_addr_len;
     uint8_t encodedWallet[100];
@@ -132,7 +134,8 @@ typedef struct {
     uint8_t p2;
 } arch_addr_struct_t;
 
-typedef struct { 
+typedef struct
+{
     uint8_t ecdhPointX[32];
     uint8_t buffer[150];
     uint8_t bufferLen;

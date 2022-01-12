@@ -13,19 +13,12 @@ commandContext global;
 ux_state_t G_ux;
 bolos_ux_params_t G_ux_params;
 
-void io_exchange_with_code(uint16_t code, uint16_t tx)
-{
-	G_io_apdu_buffer[tx++] = code >> 8;
-	G_io_apdu_buffer[tx++] = code & 0xFF;
-	io_exchange(CHANNEL_APDU | IO_RETURN_AFTER_TX, tx);
-}
-
 #define INS_GET_VERSION 0x01
 #define INS_GET_PUBLIC_KEY 0x02
 #define INS_GET_ADDRESS 0x04
 #define INS_SIGN_HASH 0x08
 
-typedef void handler_fn_t(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint16_t dataLength, volatile unsigned int *flags, volatile unsigned int *tx);
+typedef void handler_fn_t(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint16_t dataLength, volatile unsigned int *flags);
 
 handler_fn_t handleGetVersion;
 handler_fn_t handleGetPublicKey;
@@ -94,7 +87,7 @@ static void archethic_main(void)
 					THROW(0x6D00);
 				}
 				handlerFn(G_io_apdu_buffer[OFFSET_P1], G_io_apdu_buffer[OFFSET_P2],
-						  G_io_apdu_buffer + OFFSET_CDATA, G_io_apdu_buffer[OFFSET_LC], &flags, &tx);
+						  G_io_apdu_buffer + OFFSET_CDATA, G_io_apdu_buffer[OFFSET_LC], &flags);
 			}
 			CATCH(EXCEPTION_IO_RESET)
 			{

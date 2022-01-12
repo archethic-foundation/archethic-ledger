@@ -1,4 +1,12 @@
 #include "archethic.h"
+#include <os.h>
+
+void io_exchange_with_code(uint16_t code, uint16_t tx)
+{
+    G_io_apdu_buffer[tx++] = code >> 8;
+    G_io_apdu_buffer[tx++] = code & 0xFF;
+    io_exchange(CHANNEL_APDU | IO_RETURN_AFTER_TX, tx);
+}
 
 void getOriginPublicKey(cx_ecfp_public_key_t *publicKey)
 {
@@ -44,6 +52,8 @@ void decryptWallet(uint8_t *ecdhPointX, uint8_t ecdhPointLen, uint8_t *dataBuffe
 
 void getBIP44Path(uint8_t address_index, uint8_t *encoded_wallet, uint8_t wallet_len, uint8_t sequence_no, char *string_bip_44, uint8_t *bip44_len)
 {
+    if (wallet_len < 5 * sequence_no + 37)
+        return;
     // strncpy(string_bip_44, "m/44'/650'/ffff'/0'/0'", 60);
     int coin_type = (encoded_wallet[5 * sequence_no + 34] << 8) | encoded_wallet[5 * sequence_no + 35];
     int account = (encoded_wallet[5 * sequence_no + 36] << 8) | encoded_wallet[5 * sequence_no + 37];
@@ -63,6 +73,8 @@ void getBIP44Path(uint8_t address_index, uint8_t *encoded_wallet, uint8_t wallet
 
 void generateKeyFromWallet(uint32_t address_index, uint8_t *encoded_wallet, uint8_t *wallet_len, uint32_t sequence_no, uint8_t *curve_type, cx_ecfp_private_key_t *privateKey, cx_ecfp_public_key_t *publicKey)
 {
+    if (*wallet_len < 5 * sequence_no + 37)
+        return;
     uint32_t coin_type = (encoded_wallet[5 * sequence_no + 34] << 8) | encoded_wallet[5 * sequence_no + 35];
     uint32_t account = (encoded_wallet[5 * sequence_no + 36] << 8) | encoded_wallet[5 * sequence_no + 37];
 

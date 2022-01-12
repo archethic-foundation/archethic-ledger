@@ -80,7 +80,7 @@ $(info GCCPATH is not set: arm-none-eabi-* will be used from PATH)
 endif
 
 CC      := $(CLANGPATH)clang
-CFLAGS  += -O3 -Os -mfloat-abi=soft -Wno-unused-parameter -Wno-unused-variable -Wno-implicit-function-declaration -Wno-excess-initializers
+CFLAGS  += -O3 -Os -mfloat-abi=soft -Wno-format-invalid-specifier -Wno-format-extra-args -Wno-implicit-function-declaration -Wno-macro-redefined -Wno-unused-parameter -Werror 
 AS      := $(GCCPATH)arm-none-eabi-gcc
 LD      := $(GCCPATH)arm-none-eabi-gcc
 LDFLAGS += -O3 -Os

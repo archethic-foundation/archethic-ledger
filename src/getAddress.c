@@ -1,6 +1,6 @@
 #include <os.h>
 #include "archethic.h"
-
+#include "ui/menu.h"
 
 static action_validate_cb g_validate_addr_callback;
 
@@ -11,9 +11,9 @@ arch_addr_struct_t g_arch_addr;
 
 // Step with icon and text
 UX_STEP_NOCB(ux_display_confirm_address, bnnn_paging, {
-                                                            .title = "Confirm Archethic",
-                                                            .text = "Address",
-                                                        });
+                                                          .title = "Confirm Archethic",
+                                                          .text = "Address",
+                                                      });
 
 // Step with title/text for BIP44 path
 UX_STEP_NOCB(ux_display_addr_bip44,
@@ -60,13 +60,11 @@ UX_FLOW(ux_display_arch_addr_flow,
         &ux_display_addr_bip44,
         &ux_display_arch_addr,
         &ux_display_approve_addr_arch,
-        &ux_display_reject_addr_arch
-       );
-
+        &ux_display_reject_addr_arch);
 
 void ui_validate_address_arch(bool choice)
 {
-    
+
     if (choice)
     {
 
@@ -84,7 +82,7 @@ void ui_validate_address_arch(bool choice)
     ui_menu_main();
 }
 
-void handleGetAddress(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint16_t dataLength, volatile unsigned int *flags, volatile unsigned int *tx)
+void handleGetAddress(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint16_t dataLength, volatile unsigned int *flags)
 {
 
     *flags |= IO_ASYNCH_REPLY;
@@ -102,10 +100,11 @@ void handleGetAddress(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint16_t data
     getBIP44Path(p2, g_arch_addr.encodedWallet, g_arch_addr.walletLen, 0, bip44path, &bip44pathlen);
 
     memset(g_bip44_path, 0, sizeof(g_bip44_path));
-    for(int i = 0; i < bip44pathlen; ++i) {
+    for (int i = 0; i < bip44pathlen; ++i)
+    {
         g_bip44_path[i] = bip44path[i];
     }
-    
+
     g_arch_addr.p1 = p1;
     g_arch_addr.p2 = p2;
 

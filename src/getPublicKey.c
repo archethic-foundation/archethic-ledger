@@ -1,5 +1,6 @@
 #include <os.h>
 #include "archethic.h"
+#include "ui/menu.h"
 
 static action_validate_cb g_validate_callback;
 static char g_public_key[135]; // 1 + 4 + 130
@@ -81,7 +82,7 @@ void ui_action_validate_pubkey(bool choice)
     ui_menu_main();
 }
 
-void handleGetPublicKey(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint16_t dataLength, volatile unsigned int *flags, volatile unsigned int *tx)
+void handleGetPublicKey(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint16_t dataLength, volatile unsigned int *flags)
 {
     *flags |= IO_ASYNCH_REPLY;
 

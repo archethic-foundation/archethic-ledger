@@ -1,4 +1,6 @@
-#include <bip32.h>
+#include <bip44.h>
+#include <os.h>
+#include <string.h>
 
 #define MAX_SEED_SIZE 64
 
@@ -61,7 +63,7 @@ static size_t get_seed_key(cx_curve_t curve, const uint8_t **sk)
     sk_length = sizeof(BIP32_ED_SEED);
     break;
   default:
-    PRINTF(1, "seed_key: unsupported curve");
+    // unsupported curve
     sk_length = -1;
     break;
   }
