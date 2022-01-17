@@ -4,16 +4,16 @@ endif
 
 include $(BOLOS_SDK)/Makefile.defines
 
-APP_LOAD_PARAMS  = --curve secp256k1
+APP_LOAD_PARAMS  = --curve ed25519 --curve secp256r1 --curve secp256k1
 ifeq ($(TARGET_NAME), TARGET_NANOX)
 APP_LOAD_PARAMS=--appFlags 0x200  # APPLICATION_FLAG_BOLOS_SETTINGS
 else
 APP_LOAD_PARAMS=--appFlags 0x000
 endif
-APP_LOAD_PARAMS += --path "44'"
+APP_LOAD_PARAMS += --path "44'/650'"
 APP_LOAD_PARAMS += $(COMMON_LOAD_PARAMS)
 
-APPNAME      = "ArchEthic"
+APPNAME      = "ARCHEthic"
 APPVERSION_M = 1
 APPVERSION_N = 0
 APPVERSION_P = 1

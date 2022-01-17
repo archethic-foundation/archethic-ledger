@@ -1,19 +1,17 @@
 #include <bip44.h>
-#include <os.h>
-#include <string.h>
 
 #define MAX_SEED_SIZE 64
 
-static uint8_t BIP32_SECP_SEED[] = {
+static uint8_t const BIP32_SECP_SEED[] = {
     'B', 'i', 't', 'c', 'o', 'i', 'n', ' ', 's', 'e', 'e', 'd'};
 
-static uint8_t BIP32_NIST_SEED[] = {
+static uint8_t const BIP32_NIST_SEED[] = {
     'N', 'i', 's', 't', '2', '5', '6', 'p', '1', ' ', 's', 'e', 'e', 'd'};
 
-static uint8_t BIP32_ED_SEED[] = {
+static uint8_t const BIP32_ED_SEED[] = {
     'e', 'd', '2', '5', '5', '1', '9', ' ', 's', 'e', 'e', 'd'};
 
-static uint8_t SLIP21_SEED[] = {
+static uint8_t const SLIP21_SEED[] = {
     'S', 'y', 'm', 'm', 'e', 't', 'r', 'i', 'c', ' ', 'k', 'e', 'y', ' ', 's', 'e', 'e', 'd'};
 
 void be2le(uint8_t *v, size_t len)
@@ -44,7 +42,7 @@ static bool is_hardened_child(uint32_t child)
   return (child & 0x80000000) != 0;
 }
 
-static size_t get_seed_key(cx_curve_t curve, uint8_t **sk)
+static size_t get_seed_key(cx_curve_t curve, const uint8_t **sk)
 {
   size_t sk_length;
 
@@ -71,7 +69,7 @@ static size_t get_seed_key(cx_curve_t curve, uint8_t **sk)
   return sk_length;
 }
 
-static size_t get_seed_key_slip21(uint8_t **sk)
+static size_t get_seed_key_slip21(const uint8_t **sk)
 {
   size_t sk_length;
 
@@ -81,7 +79,7 @@ static size_t get_seed_key_slip21(uint8_t **sk)
   return sk_length;
 }
 
-void expand_seed_slip10(uint8_t *sk, size_t sk_length, uint8_t *seed, unsigned int seed_length, extended_private_key *key)
+void expand_seed_slip10(const uint8_t *sk, size_t sk_length, uint8_t *seed, unsigned int seed_length, extended_private_key *key)
 {
   uint8_t hash[CX_SHA512_SIZE];
 
@@ -91,7 +89,7 @@ void expand_seed_slip10(uint8_t *sk, size_t sk_length, uint8_t *seed, unsigned i
   memcpy(key->chain_code, hash + 32, 32);
 }
 
-void expand_seed_ed25519_bip32(uint8_t *sk, size_t sk_length, uint8_t *seed, unsigned int seed_length, extended_private_key *key)
+void expand_seed_ed25519_bip32(const uint8_t *sk, size_t sk_length, uint8_t *seed, unsigned int seed_length, extended_private_key *key)
 {
   uint8_t buf[1 + MAX_SEED_SIZE];
 
@@ -114,7 +112,7 @@ void expand_seed_ed25519_bip32(uint8_t *sk, size_t sk_length, uint8_t *seed, uns
   key->private_key[31] = (key->private_key[31] & 0x7F) | 0x40;
 }
 
-static void expand_seed(cx_curve_t curve, uint8_t *sk, size_t sk_length, uint8_t *seed, unsigned int seed_length, extended_private_key *key)
+static void expand_seed(cx_curve_t curve, const uint8_t *sk, size_t sk_length, uint8_t *seed, unsigned int seed_length, extended_private_key *key)
 {
   uint8_t hash[CX_SHA512_SIZE];
   uint8_t domain_n[64] = {0};
@@ -380,7 +378,7 @@ static int hdw_bip32(extended_private_key *key, cx_curve_t curve, const uint32_t
   return 0;
 }
 
-static int hdw_slip21(uint8_t *sk, size_t sk_length, const uint8_t *seed, size_t seed_size, const uint8_t *path, size_t path_len, uint8_t *private_key)
+static int hdw_slip21(const uint8_t *sk, size_t sk_length, const uint8_t *seed, size_t seed_size, const uint8_t *path, size_t path_len, uint8_t *private_key)
 {
   uint8_t node[CX_SHA512_SIZE];
 
@@ -408,7 +406,7 @@ unsigned long archethic_derive_node_with_seed_key(unsigned int mode, cx_curve_t 
 {
   size_t seed_size, sk_length;
   extended_private_key key;
-  uint8_t *sk = NULL;
+  const uint8_t *sk;
   int ret;
 
   if (seed_key == NULL || seed_key_length == 0)
