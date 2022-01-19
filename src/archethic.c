@@ -1,4 +1,5 @@
 #include "archethic.h"
+#include "common/format.h"
 #include <os.h>
 
 void io_exchange_with_code(uint16_t code, uint16_t tx)
@@ -30,8 +31,8 @@ void decryptWallet(uint8_t *ecdhPointX, uint8_t ecdhPointLen, uint8_t *dataBuffe
     uint8_t auth_key[32] = {0};
     uint8_t auth_tag[32] = {0};
     cx_hash_sha256(aes_key_iv_tag + 48, 16, auth_key, sizeof(auth_key));
-    cx_hmac_sha256(auth_key, sizeof(auth_key), dataBuffer + 65 + 16, 32, auth_tag, sizeof(auth_tag));
-    uint8_t verify_tag = memcmp(auth_tag, dataBuffer + 65, 16);
+    cx_hmac_sha256(auth_key, sizeof(auth_key), dataBuffer + 16, 32, auth_tag, sizeof(auth_tag));
+    uint8_t verify_tag = memcmp(auth_tag, dataBuffer, 16);
 
     uint8_t wallet_key[32] = {0};
     uint8_t wallet_iv[32] = {0};
@@ -39,18 +40,18 @@ void decryptWallet(uint8_t *ecdhPointX, uint8_t ecdhPointLen, uint8_t *dataBuffe
     {
         cx_aes_key_t aesKey;
         cx_aes_init_key(aes_key_iv_tag, 32, &aesKey);
-        cx_aes_iv(&aesKey, CX_DECRYPT | CX_CHAIN_CBC | CX_PAD_NONE, aes_key_iv_tag + 32, 16, dataBuffer + 65 + 16, 32, wallet_key, sizeof(wallet_key));
+        cx_aes_iv(&aesKey, CX_DECRYPT | CX_CHAIN_CBC | CX_PAD_NONE, aes_key_iv_tag + 32, 16, dataBuffer + 16, 32, wallet_key, sizeof(wallet_key));
 
         cx_hash_sha256(wallet_key, sizeof(wallet_key), wallet_iv, sizeof(wallet_iv));
         cx_hash_sha256(wallet_iv, sizeof(wallet_iv), wallet_iv, sizeof(wallet_iv));
 
         cx_aes_key_t walletAESkey;
         cx_aes_init_key(wallet_key, 32, &walletAESkey);
-        *walletLen = cx_aes_iv(&walletAESkey, CX_ENCRYPT | CX_CHAIN_CTR | CX_LAST | CX_PAD_NONE, wallet_iv, 16, dataBuffer + 65 + 16 + 32, dataLen - 65 - 16 - 32, encodedWallet, *walletLen);
+        *walletLen = cx_aes_iv(&walletAESkey, CX_ENCRYPT | CX_CHAIN_CTR | CX_LAST | CX_PAD_NONE, wallet_iv, 16, dataBuffer + 16 + 32, dataLen - 16 - 32, encodedWallet, *walletLen);
     }
 }
 
-void getBIP44Path(uint8_t address_index, uint8_t *encoded_wallet, uint8_t wallet_len, uint8_t sequence_no, char *string_bip_44, uint8_t *bip44_len)
+void getBIP44Path(uint32_t address_index, uint8_t *encoded_wallet, uint8_t wallet_len, uint8_t sequence_no, char *string_bip_44, uint8_t *bip44_len)
 {
     if (wallet_len < 5 * sequence_no + 37)
         return;
@@ -63,11 +64,10 @@ void getBIP44Path(uint8_t address_index, uint8_t *encoded_wallet, uint8_t wallet
 
     strncpy(string_bip_44 + strlen(string_bip_44), "'/", 3);
     snprintf(string_bip_44 + strlen(string_bip_44), 6, "%d", account);
-
     strncpy(string_bip_44 + strlen(string_bip_44), "'/0'/", 6);
-    snprintf(string_bip_44 + strlen(string_bip_44), 6, "%d", address_index);
-    strncpy(string_bip_44 + strlen(string_bip_44), "'", 2);
 
+    format_u64(string_bip_44 + strlen(string_bip_44), 11, address_index);
+    strncpy(string_bip_44 + strlen(string_bip_44), "'", 2);
     *bip44_len = strlen(string_bip_44);
 }
 
@@ -98,7 +98,7 @@ void generateKeyFromWallet(uint32_t address_index, uint8_t *encoded_wallet, uint
     deriveArchEthicKeyPair(curve, coin_type, account, address_index, encoded_wallet + 1, 32, privateKey, publicKey);
 }
 
-void generateArchEthicAddress(uint8_t hash_type, uint32_t address_index, uint8_t *encoded_wallet, uint8_t *wallet_len, uint32_t sequence_no)
+void generateArchEthicAddress(uint8_t hash_type, uint32_t address_index, uint8_t *encoded_wallet, uint8_t *wallet_len, uint32_t sequence_no, uint8_t *address, uint8_t *address_len)
 {
 
     cx_ecfp_public_key_t publicKey;
@@ -106,15 +106,15 @@ void generateArchEthicAddress(uint8_t hash_type, uint32_t address_index, uint8_t
     uint8_t curve_type = 255;
     generateKeyFromWallet(address_index, encoded_wallet, wallet_len, sequence_no, &curve_type, NULL, &publicKey);
 
-    encoded_wallet[0] = curve_type;
-    encoded_wallet[1] = 0; // onchain wallet origin
-    memcpy(encoded_wallet + 2, publicKey.W, publicKey.W_len);
+    address[0] = curve_type;
+    address[1] = 0; // onchain wallet origin
+    memcpy(address + 2, publicKey.W, publicKey.W_len);
 
     switch (hash_type)
     {
     case 0:
-        cx_hash_sha256(encoded_wallet, 1 + 1 + publicKey.W_len, encoded_wallet + 2, 32);
-        *wallet_len = 1 + 1 + 32;
+        cx_hash_sha256(address, 1 + 1 + publicKey.W_len, address + 2, 32);
+        *address_len = 1 + 1 + 32;
         break;
     default:
         break;
@@ -157,7 +157,7 @@ void deriveArchEthicKeyPair(cx_curve_t curve, uint32_t coin_type, uint32_t accou
     explicit_bzero(&walletPrivateKey, sizeof(walletPrivateKey));
 }
 
-void performECDSA(uint8_t *txHash, uint8_t txHashLen, uint8_t address_index, uint8_t *encoded_wallet, uint8_t *wallet_len, uint8_t sequence_no)
+void performECDSA(uint8_t *txHash, uint8_t txHashLen, uint32_t address_index, uint8_t *encoded_wallet, uint8_t *wallet_len, uint8_t sequence_no)
 {
     uint8_t curve_type = 255;
     cx_ecfp_private_key_t privateKey;
@@ -171,4 +171,57 @@ void performECDSA(uint8_t *txHash, uint8_t txHashLen, uint8_t address_index, uin
     encoded_wallet[(*wallet_len) + 1] = 0; // Onchain Wallet Key
     memcpy(encoded_wallet + (*wallet_len) + 2, publicKey.W, publicKey.W_len);
     *wallet_len += publicKey.W_len + 2;
+}
+
+void getTransactionHash(uint8_t *senderAddr, uint8_t senderAddrLen,
+                        uint8_t *receiveAddr, uint8_t receiveAddrLen,
+                        uint8_t *amount, uint8_t *txHash, uint8_t *txHashLen)
+{
+    uint8_t tx[200];
+    uint8_t version[] = {0x00, 0x00, 0x00, 0x01};
+    uint8_t tx_type[] = {0x00, 0x00, 0x00, 0xFD};
+
+    uint8_t code_size[4] = {0};
+    uint8_t content_size[4] = {0};
+    uint8_t ownership_length[4] = {0};
+
+    uint8_t total_uco_transfers[4] = {0x00, 0x00, 0x00, 0x01};
+    uint8_t total_nft_transfers[4] = {0};
+    uint8_t nft_recipients[4] = {0};
+    int index = 0;
+
+    memcpy(tx, version, 4);
+    index += 4;
+
+    memcpy(tx + index, senderAddr, senderAddrLen);
+    index += senderAddrLen;
+
+    memcpy(tx + index, tx_type, 4);
+    index += 4;
+
+    memcpy(tx + index, code_size, 4);
+    index += 4;
+
+    memcpy(tx + index, content_size, 4);
+    index += 4;
+
+    memcpy(tx + index, ownership_length, 4);
+    index += 4;
+
+    memcpy(tx + index, total_uco_transfers, 4);
+    index += 4;
+
+    memcpy(tx + index, receiveAddr, receiveAddrLen);
+    index += receiveAddrLen;
+
+    memcpy(tx + index, amount, 8);
+    index += 8;
+
+    memcpy(tx + index, total_nft_transfers, 4);
+    index += 4;
+
+    memcpy(tx + index, nft_recipients, 4);
+    index += 4;
+
+    cx_hash_sha256(tx, index, txHash, *txHashLen);
 }

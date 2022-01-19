@@ -107,7 +107,7 @@ void deriveArchEthicKeyPair(cx_curve_t curve, uint32_t coin_type, uint32_t accou
 
 void performECDH(uint8_t *ephPublicKey, uint8_t ephPublicKeySize, uint8_t *ecdhPointX);
 
-void performECDSA(uint8_t *txHash, uint8_t txHashLen, uint8_t address_index,
+void performECDSA(uint8_t *txHash, uint8_t txHashLen, uint32_t address_index,
                   uint8_t *encoded_wallet, uint8_t *wallet_len, uint8_t sequence_no);
 
 void decryptWallet(uint8_t *ecdhPointX, uint8_t ecdhPointLen,
@@ -118,9 +118,14 @@ void generateKeyFromWallet(uint32_t address_index, uint8_t *encoded_wallet, uint
                            uint8_t *curve_type, cx_ecfp_private_key_t *privateKey, cx_ecfp_public_key_t *publicKey);
 
 void generateArchEthicAddress(uint8_t hash_type, uint32_t address_index,
-                              uint8_t *encoded_wallet, uint8_t *wallet_len, uint32_t sequence_no);
+                              uint8_t *encoded_wallet, uint8_t *wallet_len, uint32_t sequence_no,
+                              uint8_t *address, uint8_t *address_len);
 
-void getBIP44Path(uint8_t address_index, uint8_t *encoded_wallet, uint8_t wallet_len, uint8_t sequence_no, char *string_bip_44, uint8_t *bip44_len);
+void getBIP44Path(uint32_t address_index, uint8_t *encoded_wallet, uint8_t wallet_len, uint8_t sequence_no, char *string_bip_44, uint8_t *bip44_len);
+
+void getTransactionHash(uint8_t *senderAddr, uint8_t senderAddrLen,
+                        uint8_t *receiveAddr, uint8_t receiveAddrLen,
+                        uint8_t *amount, uint8_t *txHash, uint8_t *txHashLen);
 
 typedef void (*action_validate_cb)(bool);
 
@@ -130,8 +135,6 @@ typedef struct
     uint8_t arch_addr_len;
     uint8_t encodedWallet[100];
     uint8_t walletLen;
-    uint8_t p1;
-    uint8_t p2;
 } arch_addr_struct_t;
 
 typedef struct
@@ -141,6 +144,10 @@ typedef struct
     uint8_t bufferLen;
     uint8_t txHash[64];
     uint8_t txHashLen;
-    uint8_t p1;
-    uint8_t p2;
+    uint8_t amount[8];
+    uint8_t receiveAddr[70];
+    uint8_t receiveAddrLen;
+    uint8_t senderAddr[70];
+    uint8_t senderAddrLen;
+    uint32_t address_index;
 } hash_struct_t;

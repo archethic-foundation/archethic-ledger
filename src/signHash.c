@@ -4,8 +4,7 @@
 static action_validate_cb g_validate_hash_callback;
 
 static char g_hash[67];
-static char g_bip44_path[30];
-
+static char g_bip44_path[40];
 hash_struct_t g_hash_ctx;
 
 // Step with icon and text
@@ -66,7 +65,7 @@ void ui_validate_sign_hash(bool choice)
     if (choice)
     {
         // Perform ECDSA Sign Hash After Approved By User
-        performECDSA(g_hash_ctx.txHash, g_hash_ctx.txHashLen, g_hash_ctx.p2, g_hash_ctx.buffer, &g_hash_ctx.bufferLen, 0);
+        performECDSA(g_hash_ctx.txHash, g_hash_ctx.txHashLen, g_hash_ctx.address_index, g_hash_ctx.buffer, &g_hash_ctx.bufferLen, 0);
 
         for (int i = 0; i < g_hash_ctx.bufferLen; i++)
         {
@@ -86,40 +85,49 @@ void handleSignHash(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint16_t dataLe
 {
     *flags |= IO_ASYNCH_REPLY;
 
-    // uint8_t txHash[64] = {0};
-    // uint8_t txHashLen = 64;
-    g_hash_ctx.txHashLen = 64;
-    g_hash_ctx.p2 = p2;
-    g_hash_ctx.p1 = p1;
+    // convert address index (big endian)
+    uint32_t address_index = 0;
+    for (int c = 0; c < 4; c++)
+        address_index |= (uint32_t)dataBuffer[c] << 8 * (3 - c);
+    g_hash_ctx.address_index = address_index;
+    dataBuffer += 4;
+    dataLength -= 4;
 
-    switch (p1)
+    memcpy(g_hash_ctx.amount, dataBuffer, 8);
+    dataBuffer += 8;
+    dataLength -= 8;
+
+    uint8_t addrLen = 0;
+    switch (dataBuffer[1] % 2)
     {
-    case 0: // SHA256
-        memcpy(g_hash_ctx.txHash, dataBuffer, 32);
-        g_hash_ctx.txHashLen = 32;
-        dataBuffer += 32;
-
-        memset(g_hash, 0, sizeof(g_hash));
-        snprintf(g_hash, sizeof(g_hash), "0x%.*H", sizeof(g_hash_ctx.txHash), g_hash_ctx.txHash);
-
+    case 0: // SHA256 or SH3_256
+        addrLen = 34;
         break;
+    case 1: // SHA512 OR SHA3_512
+        addrLen = 66;
     default:
         break;
     }
 
-    // g_hash_ctx.ecdhPointX = {0};
+    memcpy(g_hash_ctx.receiveAddr, dataBuffer, addrLen);
+    g_hash_ctx.receiveAddrLen = addrLen;
+    dataBuffer += addrLen;
+    dataLength -= addrLen;
+
     performECDH(dataBuffer, 65, g_hash_ctx.ecdhPointX);
+    dataBuffer += 65;
+    dataLength -= 65;
 
     // g_hash_ctx.buffer = {0};
     g_hash_ctx.bufferLen = sizeof(g_hash_ctx.buffer);
 
     decryptWallet(g_hash_ctx.ecdhPointX, sizeof(g_hash_ctx.ecdhPointX), dataBuffer, dataLength, g_hash_ctx.buffer, &g_hash_ctx.bufferLen);
 
-    g_hash_ctx.bufferLen = sizeof(g_hash_ctx.buffer);
+    generateArchEthicAddress(0, address_index + 1, g_hash_ctx.buffer, &g_hash_ctx.bufferLen, 0, g_hash_ctx.senderAddr, &g_hash_ctx.senderAddrLen);
 
-    char bip44path[30];
+    char bip44path[40];
     uint8_t bip44pathlen;
-    getBIP44Path(p2, g_hash_ctx.buffer, g_hash_ctx.bufferLen, 0, bip44path, &bip44pathlen);
+    getBIP44Path(address_index, g_hash_ctx.buffer, g_hash_ctx.bufferLen, 0, bip44path, &bip44pathlen);
 
     memset(g_bip44_path, 0, sizeof(g_bip44_path));
     for (int i = 0; i < bip44pathlen; ++i)
@@ -127,6 +135,12 @@ void handleSignHash(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint16_t dataLe
         g_bip44_path[i] = bip44path[i];
     }
 
+    getTransactionHash(g_hash_ctx.senderAddr, g_hash_ctx.senderAddrLen, g_hash_ctx.receiveAddr, g_hash_ctx.receiveAddrLen, g_hash_ctx.amount, g_hash_ctx.txHash, &g_hash_ctx.txHashLen);
+
+    memset(g_hash, 0, sizeof(g_hash));
+    snprintf(g_hash, sizeof(g_hash), "0x%.*H", sizeof(g_hash_ctx.txHash), g_hash_ctx.txHash);
+
     g_validate_hash_callback = &ui_validate_sign_hash;
+    g_hash_ctx.bufferLen = sizeof(g_hash_ctx.buffer);
     ux_flow_init(0, ux_display_sign_hash_main, NULL);
 }
