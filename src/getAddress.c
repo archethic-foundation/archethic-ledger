@@ -87,17 +87,24 @@ void handleGetAddress(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint16_t data
 
     *flags |= IO_ASYNCH_REPLY;
 
+    // convert address index (big endian)
+    uint32_t address_index = 0;
+    for (int c = 0; c < 4; c++)
+        address_index |= (uint32_t)dataBuffer[c] << 8 * (3 - c);
+
+    dataBuffer += 4;
+    dataLength -= 4;
+
     uint8_t ecdhPointX[32] = {0};
     performECDH(dataBuffer, 65, ecdhPointX);
 
     // uint8_t g_arch_addr.encodedWallet[100] = {0};
     g_arch_addr.walletLen = sizeof(g_arch_addr.encodedWallet);
-
     decryptWallet(ecdhPointX, sizeof(ecdhPointX), dataBuffer, dataLength, g_arch_addr.encodedWallet, &g_arch_addr.walletLen);
 
-    char bip44path[30];
+    char bip44path[40];
     uint8_t bip44pathlen;
-    getBIP44Path(p2, g_arch_addr.encodedWallet, g_arch_addr.walletLen, 0, bip44path, &bip44pathlen);
+    getBIP44Path(address_index, g_arch_addr.encodedWallet, g_arch_addr.walletLen, 0, bip44path, &bip44pathlen);
 
     memset(g_bip44_path, 0, sizeof(g_bip44_path));
     for (int i = 0; i < bip44pathlen; ++i)
@@ -105,20 +112,10 @@ void handleGetAddress(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint16_t data
         g_bip44_path[i] = bip44path[i];
     }
 
-    g_arch_addr.p1 = p1;
-    g_arch_addr.p2 = p2;
-
-    generateArchEthicAddress(g_arch_addr.p1, g_arch_addr.p2, g_arch_addr.encodedWallet, &g_arch_addr.walletLen, 0);
+    generateArchEthicAddress(0, address_index, g_arch_addr.encodedWallet, &g_arch_addr.walletLen, 0, g_arch_addr.arch_address, &g_arch_addr.arch_addr_len);
 
     memset(g_address, 0, sizeof(g_address));
-    snprintf(g_address, sizeof(g_address), "0x%.*H", sizeof(g_arch_addr.encodedWallet), g_arch_addr.encodedWallet);
-
-    for (int i = 0; i < g_arch_addr.walletLen; i++)
-    {
-        g_arch_addr.arch_address[i] = g_arch_addr.encodedWallet[i];
-    }
-
-    g_arch_addr.arch_addr_len = g_arch_addr.walletLen;
+    snprintf(g_address, sizeof(g_address), "0x%.*H", sizeof(g_arch_addr.arch_address), g_arch_addr.arch_address);
 
     g_validate_addr_callback = &ui_validate_address_arch;
     ux_flow_init(0, ux_display_arch_addr_flow, NULL);
