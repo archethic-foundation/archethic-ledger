@@ -9,10 +9,10 @@ receiver = "020019CA33A6CA9E69B5C29E6E8497CC5AC9675952F847347709AD39C92C1B1B5313
 amount = "1122334455667788"
 
 #Address APDU
-# apdu_hex_payload = address_index + encrypted_key_plus_wallet
+apdu_hex_payload = address_index + encrypted_key_plus_wallet
 
 #Sign APDU
-apdu_hex_payload = address_index + amount + receiver + encrypted_key_plus_wallet
+#apdu_hex_payload = address_index + amount + receiver + encrypted_key_plus_wallet
 
 apdu_payload = bytes.fromhex(apdu_hex_payload)
 sw, response = transport.exchange(cla=0xe0, ins=0x04, p1=0, p2=0, cdata=apdu_payload)

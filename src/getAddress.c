@@ -97,6 +97,8 @@ void handleGetAddress(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint16_t data
 
     uint8_t ecdhPointX[32] = {0};
     performECDH(dataBuffer, 65, ecdhPointX);
+    dataBuffer += 65;
+    dataLength -= 65;
 
     // uint8_t g_arch_addr.encodedWallet[100] = {0};
     g_arch_addr.walletLen = sizeof(g_arch_addr.encodedWallet);
@@ -113,7 +115,6 @@ void handleGetAddress(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint16_t data
     }
 
     generateArchEthicAddress(0, address_index, g_arch_addr.encodedWallet, &g_arch_addr.walletLen, 0, g_arch_addr.arch_address, &g_arch_addr.arch_addr_len);
-
     memset(g_address, 0, sizeof(g_address));
     snprintf(g_address, sizeof(g_address), "0x%.*H", sizeof(g_arch_addr.arch_address), g_arch_addr.arch_address);
 
