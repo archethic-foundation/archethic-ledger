@@ -157,7 +157,7 @@ void deriveArchEthicKeyPair(cx_curve_t curve, uint32_t coin_type, uint32_t accou
     explicit_bzero(&walletPrivateKey, sizeof(walletPrivateKey));
 }
 
-void performECDSA(uint8_t *txHash, uint8_t txHashLen, uint32_t address_index, uint8_t *encoded_wallet, uint8_t *wallet_len, uint8_t sequence_no)
+void performECDSA(uint8_t *txHash, uint8_t txHashLen, uint32_t address_index, uint8_t *encoded_wallet, uint8_t *wallet_len, uint8_t sequence_no, uint8_t *asn_sign, uint8_t *sign_len)
 {
     uint8_t curve_type = 255;
     cx_ecfp_private_key_t privateKey;
@@ -165,12 +165,12 @@ void performECDSA(uint8_t *txHash, uint8_t txHashLen, uint32_t address_index, ui
     publicKey.W_len = 0;
     unsigned int info = 0;
     generateKeyFromWallet(address_index, encoded_wallet, wallet_len, sequence_no, &curve_type, &privateKey, &publicKey);
-    *wallet_len = cx_ecdsa_sign(&privateKey, CX_RND_TRNG, CX_SHA256, txHash, txHashLen, encoded_wallet, *wallet_len, &info);
+    *sign_len = cx_ecdsa_sign(&privateKey, CX_RND_TRNG, CX_SHA256, txHash, txHashLen, asn_sign, *sign_len, &info);
 
-    encoded_wallet[*wallet_len] = curve_type;
-    encoded_wallet[(*wallet_len) + 1] = 0; // Onchain Wallet Key
-    memcpy(encoded_wallet + (*wallet_len) + 2, publicKey.W, publicKey.W_len);
-    *wallet_len += publicKey.W_len + 2;
+    asn_sign[*sign_len] = curve_type;
+    asn_sign[(*sign_len) + 1] = 0; // Onchain Wallet Key
+    memcpy(asn_sign + (*sign_len) + 2, publicKey.W, publicKey.W_len);
+    *sign_len += publicKey.W_len + 2;
 }
 
 void getTransactionHash(uint8_t *senderAddr, uint8_t senderAddrLen,
@@ -223,5 +223,6 @@ void getTransactionHash(uint8_t *senderAddr, uint8_t senderAddrLen,
     memcpy(tx + index, nft_recipients, 4);
     index += 4;
 
+    *txHashLen = 32;
     cx_hash_sha256(tx, index, txHash, *txHashLen);
 }

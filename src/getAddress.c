@@ -4,10 +4,11 @@
 
 static action_validate_cb g_validate_addr_callback;
 
-static char g_bip44_path[30];
-static char g_address[72];
+static char g_bip44_path[40];
+static char g_address[70];
 
-arch_addr_struct_t g_arch_addr;
+static arch_addr_struct_t g_arch_addr;
+static onchain_wallet_struct_t g_wallet;
 
 // Step with icon and text
 UX_STEP_NOCB(ux_display_confirm_address, bnnn_paging, {
@@ -100,21 +101,14 @@ void handleGetAddress(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint16_t data
     dataBuffer += 65;
     dataLength -= 65;
 
-    // uint8_t g_arch_addr.encodedWallet[100] = {0};
-    g_arch_addr.walletLen = sizeof(g_arch_addr.encodedWallet);
-    decryptWallet(ecdhPointX, sizeof(ecdhPointX), dataBuffer, dataLength, g_arch_addr.encodedWallet, &g_arch_addr.walletLen);
+    g_wallet.walletLen = sizeof(g_wallet.encodedWallet);
+    decryptWallet(ecdhPointX, sizeof(ecdhPointX), dataBuffer, dataLength, g_wallet.encodedWallet, &g_wallet.walletLen);
 
-    char bip44path[40];
     uint8_t bip44pathlen;
-    getBIP44Path(address_index, g_arch_addr.encodedWallet, g_arch_addr.walletLen, 0, bip44path, &bip44pathlen);
-
     memset(g_bip44_path, 0, sizeof(g_bip44_path));
-    for (int i = 0; i < bip44pathlen; ++i)
-    {
-        g_bip44_path[i] = bip44path[i];
-    }
+    getBIP44Path(address_index, g_wallet.encodedWallet, g_wallet.walletLen, 0, g_bip44_path, &bip44pathlen);
 
-    generateArchEthicAddress(0, address_index, g_arch_addr.encodedWallet, &g_arch_addr.walletLen, 0, g_arch_addr.arch_address, &g_arch_addr.arch_addr_len);
+    generateArchEthicAddress(0, address_index, g_wallet.encodedWallet, &g_wallet.walletLen, 0, g_arch_addr.arch_address, &g_arch_addr.arch_addr_len);
     memset(g_address, 0, sizeof(g_address));
     snprintf(g_address, sizeof(g_address), "0x%.*H", sizeof(g_arch_addr.arch_address), g_arch_addr.arch_address);
 

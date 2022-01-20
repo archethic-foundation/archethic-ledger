@@ -9,7 +9,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-commandContext global;
 ux_state_t G_ux;
 bolos_ux_params_t G_ux_params;
 
@@ -52,7 +51,7 @@ static handler_fn_t *lookupHandler(uint8_t ins)
 
 static void archethic_main(void)
 {
-	global.calcTxnHashContext.initialized = false;
+	// global.calcTxnHashContext.initialized = false;
 	volatile unsigned int rx = 0;
 	volatile unsigned int tx = 0;
 	volatile unsigned int flags = 0;

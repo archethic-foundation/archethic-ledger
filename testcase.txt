@@ -1,4 +1,3 @@
-
 ----------------------------------------------------
 
 Master Seed for Onchain Wallet (32 bytes)
