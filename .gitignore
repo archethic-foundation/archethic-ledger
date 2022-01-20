@@ -1,3 +1,12 @@
+bin
+debug
+dep
+obj
+src/glyphs.c
+src/glyphs.h
 
 **__pycache__
 tests/.pytest_cache
+.vscode/configurationCache.log
+.vscode/dryrun.log
+.vscode/targets.log
