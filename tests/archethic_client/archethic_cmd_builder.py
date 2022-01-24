@@ -147,3 +147,31 @@ class ArchethicCommandBuilder:
                               p1=0x01 if display else 0x00,
                               p2=0x00,
                               cdata=b"")
+
+    def get_arch_address(self,  enc_oc_wallet, addr_index, display: bool = False):
+        """Command builder for GET_ARCH_ADDR.
+
+        Parameters
+        ----------
+        display : bool
+            Whether you want to display the address on the device.
+        enc_oc_wallet: String<hex>
+            The Encyrpted onchain wallet with key or in short encrypted key plus wallet
+        addr_index: string
+            The address index to which address need to be derived
+
+        Returns
+        -------
+        bytes
+            APDU command for GET_ARCH_ADDR.
+        """
+        
+        # As per specification https://hackmd.io/0fKm_XjJQuu46ph6zP5doQ#Get-ArchEthic-Account-Address
+        cdata: bytes = bytes.fromhex(addr_index + enc_oc_wallet)
+
+        return self.serialize(cla=self.CLA,
+                                ins=InsType.INS_GET_ARCH_ADDR,
+                                p1=0x01 if display else 0x00,
+                                p2=0x00,
+                                cdata=cdata)
+        
