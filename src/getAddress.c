@@ -98,6 +98,7 @@ void handleGetAddress(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint16_t data
     dataBuffer += 65;
     dataLength -= 65;
 
+    // decrypt wallet
     g_wallet.walletLen = sizeof(g_wallet.encodedWallet);
     decryptWallet(ecdhPointX, sizeof(ecdhPointX), dataBuffer, dataLength, g_wallet.encodedWallet, &g_wallet.walletLen);
 
