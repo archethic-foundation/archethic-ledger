@@ -179,15 +179,15 @@ void getTransactionHash(uint8_t *senderAddr, uint8_t senderAddrLen,
 {
     uint8_t tx[200];
     uint8_t version[] = {0x00, 0x00, 0x00, 0x01};
-    uint8_t tx_type[] = {0x00, 0x00, 0x00, 0xFD};
+    uint8_t tx_type = 0xFD;
 
     uint8_t code_size[4] = {0};
     uint8_t content_size[4] = {0};
-    uint8_t ownership_length[4] = {0};
+    uint8_t ownership_length = 0;
 
-    uint8_t total_uco_transfers[4] = {0x00, 0x00, 0x00, 0x01};
-    uint8_t total_nft_transfers[4] = {0};
-    uint8_t nft_recipients[4] = {0};
+    uint8_t total_uco_transfers = 0x01;
+    uint8_t total_nft_transfers = 0;
+    uint8_t recipients = 0;
     int index = 0;
 
     memcpy(tx, version, 4);
@@ -196,8 +196,8 @@ void getTransactionHash(uint8_t *senderAddr, uint8_t senderAddrLen,
     memcpy(tx + index, senderAddr, senderAddrLen);
     index += senderAddrLen;
 
-    memcpy(tx + index, tx_type, 4);
-    index += 4;
+    memcpy(tx + index, &tx_type, 1);
+    index += 1;
 
     memcpy(tx + index, code_size, 4);
     index += 4;
@@ -205,11 +205,11 @@ void getTransactionHash(uint8_t *senderAddr, uint8_t senderAddrLen,
     memcpy(tx + index, content_size, 4);
     index += 4;
 
-    memcpy(tx + index, ownership_length, 4);
-    index += 4;
+    memcpy(tx + index, &ownership_length, 1);
+    index += 1;
 
-    memcpy(tx + index, total_uco_transfers, 4);
-    index += 4;
+    memcpy(tx + index, &total_uco_transfers, 1);
+    index += 1;
 
     memcpy(tx + index, receiveAddr, receiveAddrLen);
     index += receiveAddrLen;
@@ -217,12 +217,21 @@ void getTransactionHash(uint8_t *senderAddr, uint8_t senderAddrLen,
     memcpy(tx + index, amount, 8);
     index += 8;
 
-    memcpy(tx + index, total_nft_transfers, 4);
-    index += 4;
+    memcpy(tx + index, &total_nft_transfers, 1);
+    index += 1;
 
-    memcpy(tx + index, nft_recipients, 4);
-    index += 4;
+    memcpy(tx + index, &recipients, 1);
+    index += 1;
 
     *txHashLen = 32;
     cx_hash_sha256(tx, index, txHash, *txHashLen);
+    /*
+        for (int k = 0; k < index; k++)
+            PRINTF("%02X", tx[k]);
+        PRINTF("\n\n");
+
+        for (int k = 0; k < *txHashLen; k++)
+            PRINTF("%02X", txHash[k]);
+        PRINTF("\n\n");
+    */
 }

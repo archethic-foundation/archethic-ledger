@@ -12,7 +12,7 @@ amount = "000000038407B700"
 # apdu_hex_payload = address_index + encrypted_key_plus_wallet
 
 #Sign APDU
-apdu_hex_payload = address_index + amount + receiver + encrypted_key_plus_wallet
+apdu_hex_payload = address_index + receiver + amount + encrypted_key_plus_wallet
 
 apdu_payload = bytes.fromhex(apdu_hex_payload)
 sw, response = transport.exchange(cla=0xe0, ins=0x08, p1=0, p2=0, cdata=apdu_payload)

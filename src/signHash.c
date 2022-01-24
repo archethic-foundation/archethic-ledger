@@ -107,19 +107,7 @@ void handleSignHash(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint16_t dataLe
     dataBuffer += 4;
     dataLength -= 4;
 
-    // convert amount (big endian)
-    memcpy(g_tx.amount, dataBuffer, 8);
-    uint64_t dispAmt = 0;
-    for (int c = 0; c < 8; c++)
-        dispAmt |= (uint64_t)dataBuffer[c] << 8 * (7 - c);
-
-    char test_g[30] = {0};
-    format_fpu64(test_g, sizeof(test_g), dispAmt, 8);
-    memset(g_amount, 0, sizeof(g_amount));
-    memcpy(g_amount, test_g, 30);
-    dataBuffer += 8;
-    dataLength -= 8;
-
+    // receiver address
     uint8_t addrLen = 0;
     switch (dataBuffer[1] % 2)
     {
@@ -136,28 +124,44 @@ void handleSignHash(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint16_t dataLe
     g_tx.receiveAddrLen = addrLen;
     dataBuffer += addrLen;
     dataLength -= addrLen;
-
     snprintf(g_addr, sizeof(g_addr), "0x%.*H", sizeof(g_tx.receiveAddr), g_tx.receiveAddr);
 
+    // convert amount (big endian)
+    memcpy(g_tx.amount, dataBuffer, 8);
+    uint64_t dispAmt = 0;
+    for (int c = 0; c < 8; c++)
+        dispAmt |= (uint64_t)dataBuffer[c] << 8 * (7 - c);
+
+    char test_g[30] = {0};
+    format_fpu64(test_g, sizeof(test_g), dispAmt, 8);
+    memset(g_amount, 0, sizeof(g_amount));
+    memcpy(g_amount, test_g, 30);
+    dataBuffer += 8;
+    dataLength -= 8;
+
+    // ecdh
     performECDH(dataBuffer, 65, g_tx.ecdhPointX);
     dataBuffer += 65;
     dataLength -= 65;
 
+    // decrypt wallet
     g_Wallet.walletLen = sizeof(g_Wallet.encodedWallet);
     decryptWallet(g_tx.ecdhPointX, sizeof(g_tx.ecdhPointX), dataBuffer, dataLength, g_Wallet.encodedWallet, &g_Wallet.walletLen);
 
     // get sender address using address index + 1, according to specs V1
     generateArchEthicAddress(0, address_index + 1, g_Wallet.encodedWallet, &g_Wallet.walletLen, 0, g_tx.senderAddr, &g_tx.senderAddrLen);
 
+    // get BIP path for display
     uint8_t bip44pathlen;
     memset(g_bip44_path, 0, sizeof(g_bip44_path));
     getBIP44Path(address_index, g_Wallet.encodedWallet, g_Wallet.walletLen, 0, g_bip44_path, &bip44pathlen);
 
+    // create transaction and get its hash (sha256)
     getTransactionHash(g_tx.senderAddr, g_tx.senderAddrLen, g_tx.receiveAddr, g_tx.receiveAddrLen, g_tx.amount, g_tx.txHash, &g_tx.txHashLen);
-
     memset(g_hash, 0, sizeof(g_hash));
     snprintf(g_hash, sizeof(g_hash), "0x%.*H", sizeof(g_tx.txHash), g_tx.txHash);
 
+    // set gui triggers
     g_validate_hash_callback = &ui_validate_sign_hash;
     g_Wallet.walletLen = sizeof(g_Wallet.encodedWallet);
     ux_flow_init(0, ux_display_sign_hash_main, NULL);
