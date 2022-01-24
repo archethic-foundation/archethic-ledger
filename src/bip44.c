@@ -63,6 +63,7 @@ static size_t get_seed_key(cx_curve_t curve, const uint8_t **sk)
   default:
     // unsupported curve
     sk_length = -1;
+    *sk = NULL;
     break;
   }
 
