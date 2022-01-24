@@ -4,7 +4,7 @@ dep
 obj
 src/glyphs.c
 src/glyphs.h
-
+null.d
 **__pycache__
 tests/.pytest_cache
 .vscode/configurationCache.log

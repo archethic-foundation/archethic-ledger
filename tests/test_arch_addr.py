@@ -17,11 +17,6 @@ def test_get_arch_addr(cmd, hid):
         elif(curve_type == "01" or curve_type == "03"):
             assert(len(hashed_data) == 128)
 
-    if(hid):
-        assert(curve_type == "00")
-        assert(hash_type == "00")
-        check_hash_len(curve_type, hash_enc_pub_key)
-    else:
         assert(curve_type == "02")
         assert(hash_type == "00")
         check_hash_len(curve_type, hash_enc_pub_key)
