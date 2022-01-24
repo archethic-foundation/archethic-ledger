@@ -101,6 +101,7 @@ IO.puts(Base.encode16(encoded_wallet_key))
 
 IO.puts("\n----------------------------------------------------")
 
+"""
 {_ok, address_header} = Base.decode16("E0040000")
 payload = encoded_wallet_key <> encrypted_wallet
 {_ok, lc} = Base.decode16(Integer.to_string(byte_size(payload), 16))
@@ -123,3 +124,4 @@ IO.puts(Base.encode16(sign_apdu))
 # public_key = Base.decode16!("", case: :lower)
 # sign = Base.decode16!("", case: :lower)
 # :crypto.verify(:ecdsa, :sha256, "archethic", sign, [public_key, :secp256k1])
+"""

@@ -83,9 +83,10 @@ void ui_validate_sign_hash(bool choice)
                      g_Wallet.encodedWallet, &g_Wallet.walletLen, 0,
                      g_Wallet.encodedWallet, &g_Wallet.walletLen);
 
-        for (int i = 0; i < g_Wallet.walletLen; i++)
-            G_io_apdu_buffer[i] = g_Wallet.encodedWallet[i];
-        io_exchange_with_code(SW_OK, g_Wallet.walletLen);
+        memcpy(G_io_apdu_buffer, g_tx.txHash, g_tx.txHashLen);
+        memcpy(G_io_apdu_buffer + g_tx.txHashLen, g_Wallet.encodedWallet, g_Wallet.walletLen);
+
+        io_exchange_with_code(SW_OK, g_tx.txHashLen + g_Wallet.walletLen);
     }
     else
     {

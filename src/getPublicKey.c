@@ -69,9 +69,8 @@ void ui_action_validate_pubkey(bool choice)
         G_io_apdu_buffer[0] = 2;
         // Ledger Origin Device
         G_io_apdu_buffer[1] = 4;
-        for (int v = 0; v < (int)publicKey.W_len; v++)
-            G_io_apdu_buffer[v + 2] = publicKey.W[v];
 
+        memcpy(G_io_apdu_buffer + 2, publicKey.W, publicKey.W_len);
         io_exchange_with_code(SW_OK, publicKey.W_len + 2);
     }
     else

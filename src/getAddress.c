@@ -7,7 +7,7 @@ static action_validate_cb g_validate_addr_callback;
 static char g_bip44_path[40];
 static char g_address[70];
 
-static arch_addr_struct_t g_arch_addr;
+static addr_struct_t g_addr;
 static onchain_wallet_struct_t g_wallet;
 
 // Step with icon and text
@@ -69,11 +69,8 @@ void ui_validate_address_arch(bool choice)
     if (choice)
     {
 
-        for (int i = 0; i < g_arch_addr.arch_addr_len; i++)
-        {
-            G_io_apdu_buffer[i] = g_arch_addr.arch_address[i];
-        }
-        io_exchange_with_code(SW_OK, g_arch_addr.arch_addr_len);
+        memcpy(G_io_apdu_buffer, g_addr.arch_address, g_addr.arch_addr_len);
+        io_exchange_with_code(SW_OK, g_addr.arch_addr_len);
     }
     else
     {
@@ -108,9 +105,9 @@ void handleGetAddress(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint16_t data
     memset(g_bip44_path, 0, sizeof(g_bip44_path));
     getBIP44Path(address_index, g_wallet.encodedWallet, g_wallet.walletLen, 0, g_bip44_path, &bip44pathlen);
 
-    generateArchEthicAddress(0, address_index, g_wallet.encodedWallet, &g_wallet.walletLen, 0, g_arch_addr.arch_address, &g_arch_addr.arch_addr_len);
+    generateArchEthicAddress(0, address_index, g_wallet.encodedWallet, &g_wallet.walletLen, 0, g_addr.arch_address, &g_addr.arch_addr_len);
     memset(g_address, 0, sizeof(g_address));
-    snprintf(g_address, sizeof(g_address), "0x%.*H", sizeof(g_arch_addr.arch_address), g_arch_addr.arch_address);
+    snprintf(g_address, sizeof(g_address), "0x%.*H", sizeof(g_addr.arch_address), g_addr.arch_address);
 
     g_validate_addr_callback = &ui_validate_address_arch;
     ux_flow_init(0, ux_display_arch_addr_flow, NULL);

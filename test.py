@@ -9,7 +9,7 @@ receiver = "020019CA33A6CA9E69B5C29E6E8497CC5AC9675952F847347709AD39C92C1B1B5313
 amount = "000000038407B700"
 
 #Address APDU
-# apdu_hex_payload = address_index + encrypted_key_plus_wallet
+#apdu_hex_payload = address_index + encrypted_key_plus_wallet
 
 #Sign APDU
 apdu_hex_payload = address_index + receiver + amount + encrypted_key_plus_wallet

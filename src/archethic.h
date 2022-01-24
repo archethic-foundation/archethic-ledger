@@ -20,7 +20,7 @@ typedef struct
 {
     uint8_t arch_address[34];
     uint8_t arch_addr_len;
-} arch_addr_struct_t;
+} addr_struct_t;
 
 typedef struct
 {
