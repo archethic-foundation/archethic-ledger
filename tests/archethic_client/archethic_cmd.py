@@ -65,7 +65,7 @@ class ArchethicCommand:
 
         return major, minor, patch
 
-    def get_public_key(self, display: bool = False) -> Tuple[bytes, bytes]:
+    def get_public_key(self, display: bool = False) -> Tuple[hex, hex, hex, hex, hex]:
         sw, response = self.transport.exchange_raw(
             self.builder.get_public_key(display=display)
         )  # type: int, bytes
@@ -90,7 +90,7 @@ class ArchethicCommand:
         offset += 64
         y: hex = response[offset:offset + 64]
         
-        # curve_type => 0 -> SHA256 (sha2) 1 -> SHA512 (sha2) 2 -> SHA3_256 (keccak) 3 -> SHA3_512 (keccak) 4 -> BLAKE2B
+        # curve_type => 0: ED25519, 1: NISTP256, 2: SECP256K1
         # device_origin => 0 -> Onchain Wallet , 1 -> Software wallet , 2 -> TPM(Node) , 3 -> Yubikey(Node, hardware Wallet) , 4 -> Ledger (Hardware Wallet)
         # path_form => 04 means uncompressed form
         # x => x on curve path uncompressed form
@@ -99,5 +99,29 @@ class ArchethicCommand:
         assert len(response) == 134 # 1 bytes + 1 bytes + 1 byte + 32 bytes + 32 bytes
 
         return curve_type, device_origin, path_form, x, y
+
+    def get_arch_addr(self,  enc_oc_wallet, addr_index, display: bool = False ): 
+        sw, response = self.transport.exchange_raw(
+            self.builder.get_arch_address( enc_oc_wallet, addr_index, display=display,)
+        )  # type: int, bytes
+
+        if sw != 0x9000:
+            raise DeviceException(error_code=sw, ins=InsType.INS_GET_PUBLIC_KEY)
+
+        response = response.hex()
+
+        offset: int = 0
+        curve_type: hex = response[offset: offset + 2]
+        offset += 2
+        hash_type: hex = response[offset: offset + 2]
+        offset += 2
+        hash_enc_pub_key = response[offset:]
+
+        # curve_type => 0: ED25519, 1: NISTP256, 2: SECP256K1
+        # hash_type => 0 -> SHA256 (sha2) 1 -> SHA512 (sha2) 2 -> SHA3_256 (keccak) 3 -> SHA3_512 (keccak) 4 -> BLAKE2B
+        # hash_enc_pub_key => According to hash type hashed encoded public key
+
+        return curve_type, hash_type, hash_enc_pub_key
+
 
    
