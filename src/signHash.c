@@ -1,33 +1,44 @@
 #include <os.h>
 #include "archethic.h"
+#include "common/format.h"
 
 static action_validate_cb g_validate_hash_callback;
 
 static char g_hash[67];
+static char g_addr[72];
+static char g_amount[30];
 static char g_bip44_path[40];
 static tx_struct_t g_tx;
 static onchain_wallet_struct_t g_Wallet;
 
 // Step with icon and text
 UX_STEP_NOCB(ux_confirm_sign_hash, bnnn_paging, {
-                                                    .title = "Confirm Hash",
-                                                    .text = "to Sign",
+                                                    .title = "Confirm Transaction",
+                                                    .text = "details to Sign",
                                                 });
+
+// Step with title/test for reciever
+UX_STEP_NOCB(ux_display_reciever_addr,
+             bnnn_paging,
+             {
+                 .title = "Reciever Address",
+                 .text = g_addr,
+             });
+
+// Step with amount for transaction
+UX_STEP_NOCB(ux_display_txn_amount,
+             bnnn_paging,
+             {
+                 .title = "Amount (UCO)",
+                 .text = g_amount,
+             });
 
 // Step with title/text for BIP44 path
 UX_STEP_NOCB(ux_display_hash_addr_bip44,
              bnnn_paging,
              {
-                 .title = "bip44 Path",
+                 .title = "Signing BIP44 Path",
                  .text = g_bip44_path,
-             });
-
-// Step with title/text for public key
-UX_STEP_NOCB(ux_display_sign_hash,
-             bnnn_paging,
-             {
-                 .title = "Txn Hash",
-                 .text = g_hash,
              });
 
 // Step with approve button
@@ -55,8 +66,9 @@ UX_STEP_CB(ux_display_reject_sign_hash,
 // #4 screen: reject button
 UX_FLOW(ux_display_sign_hash_main,
         &ux_confirm_sign_hash,
+        &ux_display_reciever_addr,
+        &ux_display_txn_amount,
         &ux_display_hash_addr_bip44,
-        &ux_display_sign_hash,
         &ux_display_approve_sign_hash,
         &ux_display_reject_sign_hash);
 
@@ -65,6 +77,8 @@ void ui_validate_sign_hash(bool choice)
     if (choice)
     {
         // Perform ECDSA Sign Hash After Approved By User
+        // sender address => address index + 1
+        // signing key => address index
         performECDSA(g_tx.txHash, g_tx.txHashLen, g_tx.address_index,
                      g_Wallet.encodedWallet, &g_Wallet.walletLen, 0,
                      g_Wallet.encodedWallet, &g_Wallet.walletLen);
@@ -93,7 +107,16 @@ void handleSignHash(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint16_t dataLe
     dataBuffer += 4;
     dataLength -= 4;
 
+    // convert amount (big endian)
     memcpy(g_tx.amount, dataBuffer, 8);
+    uint64_t dispAmt = 0;
+    for (int c = 0; c < 8; c++)
+        dispAmt |= (uint64_t)dataBuffer[c] << 8 * (7 - c);
+
+    char test_g[30] = {0};
+    format_fpu64(test_g, sizeof(test_g), dispAmt, 8);
+    memset(g_amount, 0, sizeof(g_amount));
+    memcpy(g_amount, test_g, 30);
     dataBuffer += 8;
     dataLength -= 8;
 
@@ -114,6 +137,8 @@ void handleSignHash(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint16_t dataLe
     dataBuffer += addrLen;
     dataLength -= addrLen;
 
+    snprintf(g_addr, sizeof(g_addr), "0x%.*H", sizeof(g_tx.receiveAddr), g_tx.receiveAddr);
+
     performECDH(dataBuffer, 65, g_tx.ecdhPointX);
     dataBuffer += 65;
     dataLength -= 65;
@@ -121,6 +146,7 @@ void handleSignHash(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint16_t dataLe
     g_Wallet.walletLen = sizeof(g_Wallet.encodedWallet);
     decryptWallet(g_tx.ecdhPointX, sizeof(g_tx.ecdhPointX), dataBuffer, dataLength, g_Wallet.encodedWallet, &g_Wallet.walletLen);
 
+    // get sender address using address index + 1, according to specs V1
     generateArchEthicAddress(0, address_index + 1, g_Wallet.encodedWallet, &g_Wallet.walletLen, 0, g_tx.senderAddr, &g_tx.senderAddrLen);
 
     uint8_t bip44pathlen;
