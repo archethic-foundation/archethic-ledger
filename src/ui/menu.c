@@ -42,13 +42,3 @@ void ui_menu_about()
 {
     ux_flow_init(0, ux_menu_about_flow, NULL);
 }
-
-/*
-void ui_idle(void)
-{
-
-    #ifdef HAVE_UX_LEGACY
-        UX_MENU_DISPLAY(0, ui_menu_main, NULL);
-    #endif
-}
-*/
