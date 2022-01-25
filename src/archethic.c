@@ -49,6 +49,15 @@ void decryptWallet(uint8_t *ecdhPointX, uint8_t ecdhPointLen, uint8_t *dataBuffe
         cx_aes_init_key(wallet_key, 32, &walletAESkey);
         *walletLen = cx_aes_iv(&walletAESkey, CX_ENCRYPT | CX_CHAIN_CTR | CX_LAST | CX_PAD_NONE, wallet_iv, 16, dataBuffer + 16 + 32, dataLen - 16 - 32, encodedWallet, *walletLen);
     }
+    else
+    { // BAD DECODE
+        *walletLen = 5;
+        encodedWallet[0] = 0xBA;
+        encodedWallet[1] = 0xDD;
+        encodedWallet[2] = 0xEC;
+        encodedWallet[3] = 0x0D;
+        encodedWallet[4] = 0xE0;
+    }
 }
 
 void getBIP44Path(uint32_t address_index, uint8_t *encoded_wallet, uint8_t wallet_len, uint8_t sequence_no, char *string_bip_44, uint8_t *bip44_len)
