@@ -15,5 +15,5 @@ jobs:
         uses: DoozyX/clang-format-lint-action@v0.11
         with:
           source: './src/ui'
-          extensions: 'h'
+          extensions: 'c, h'
           clangFormatVersion: 11
