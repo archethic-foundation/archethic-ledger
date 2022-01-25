@@ -9,8 +9,3 @@ void ui_menu_main(void);
  * Show about submenu (copyright, date).
  */
 void ui_menu_about(void);
-
-/**
- * Show idle menu
- */
-void ui_idle(void);
