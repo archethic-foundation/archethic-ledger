@@ -98,8 +98,6 @@ void ui_validate_sign_hash(bool choice)
 
 void handleSignHash(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint16_t dataLength, volatile unsigned int *flags)
 {
-    *flags |= IO_ASYNCH_REPLY;
-
     // convert address index (big endian)
     uint32_t address_index = 0;
     for (int c = 0; c < 4; c++)
@@ -148,6 +146,14 @@ void handleSignHash(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint16_t dataLe
     // decrypt wallet
     g_Wallet.walletLen = sizeof(g_Wallet.encodedWallet);
     decryptWallet(g_tx.ecdhPointX, sizeof(g_tx.ecdhPointX), dataBuffer, dataLength, g_Wallet.encodedWallet, &g_Wallet.walletLen);
+    if (g_Wallet.walletLen == 5)
+    { // return "BADDECODE" if authentication for wallet decryption failed
+        memcpy(G_io_apdu_buffer, g_Wallet.encodedWallet, g_Wallet.walletLen);
+        io_exchange_with_code(SW_WRONG_WALLET, g_Wallet.walletLen);
+        return;
+    }
+    else
+        *flags |= IO_ASYNCH_REPLY;
 
     // get sender address using address index + 1, according to specs V1
     generateArchEthicAddress(0, address_index + 1, g_Wallet.encodedWallet, &g_Wallet.walletLen, 0, g_tx.senderAddr, &g_tx.senderAddrLen);

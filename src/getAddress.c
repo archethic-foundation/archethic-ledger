@@ -82,9 +82,6 @@ void ui_validate_address_arch(bool choice)
 
 void handleGetAddress(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint16_t dataLength, volatile unsigned int *flags)
 {
-
-    *flags |= IO_ASYNCH_REPLY;
-
     // convert address index (big endian)
     uint32_t address_index = 0;
     for (int c = 0; c < 4; c++)
@@ -101,6 +98,14 @@ void handleGetAddress(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint16_t data
     // decrypt wallet
     g_wallet.walletLen = sizeof(g_wallet.encodedWallet);
     decryptWallet(ecdhPointX, sizeof(ecdhPointX), dataBuffer, dataLength, g_wallet.encodedWallet, &g_wallet.walletLen);
+    if (g_wallet.walletLen == 5)
+    { // return "BADDECODE" if authentication for wallet decryption failed
+        memcpy(G_io_apdu_buffer, g_wallet.encodedWallet, g_wallet.walletLen);
+        io_exchange_with_code(SW_WRONG_WALLET, g_wallet.walletLen);
+        return;
+    }
+    else
+        *flags |= IO_ASYNCH_REPLY;
 
     uint8_t bip44pathlen;
     memset(g_bip44_path, 0, sizeof(g_bip44_path));
