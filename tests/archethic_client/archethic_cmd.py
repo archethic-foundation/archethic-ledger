@@ -123,5 +123,40 @@ class ArchethicCommand:
 
         return curve_type, hash_type, hash_enc_pub_key
 
+    def sign_txn_hash(self,  enc_oc_wallet, addr_index, reciever_addr, amount, display: bool = False):
+
+        sw, response = self.transport.exchange_raw(
+            self.builder.sign_txn_hash_build(enc_oc_wallet, addr_index, reciever_addr, amount, display)
+        )  # type: int, bytes
+
+        if sw != 0x9000:
+            raise DeviceException(error_code=sw, ins=InsType.INS_GET_PUBLIC_KEY)
+
+        response = response.hex()
+
+        #  APDU Response have following 
+        # Final Tx Hash (SHA256) || ASN DER Signature || Corresponding public key from whose private key the signature was made
+
+        offset = 0
+        final_txn_hash = response[offset: offset + 64]
+        offset += 64
+        sign_tag: hex = response[offset: offset + 2]
+        # Check if sign tag found if not malformed address
+        assert(sign_tag == "30")
+        sign_len = response[offset + 2: offset + 4]
+        asn_der_sign = response[offset: offset + 4 + (int(sign_len, base=16)*2)]
+        offset += (int(sign_len, base=16)*2) + 4
+
+        curve_type = response[offset: offset + 2]
+
+        origin_type = response[offset + 2 : offset + 4]
+
+        pubkey_tag = response[offset +4 : offset + 6]
+        # Check for the form 04 mean it is uncompressed
+        assert(pubkey_tag == "04")
+        public_key = response[offset:]
+
+        return final_txn_hash, sign_tag, sign_len, asn_der_sign, curve_type, origin_type, pubkey_tag, public_key
+
 
    

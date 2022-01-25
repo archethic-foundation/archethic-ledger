@@ -19,4 +19,4 @@ def test_get_arch_addr(cmd, hid):
 
         assert(curve_type == "02")
         assert(hash_type == "00")
-        check_hash_len(curve_type, hash_enc_pub_key)
+    check_hash_len(curve_type, hash_enc_pub_key)
