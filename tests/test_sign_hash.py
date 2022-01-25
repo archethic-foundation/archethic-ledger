@@ -21,7 +21,7 @@ def test_sign_txn_hash(cmd, hid):
     # 151 UC0 in hex, 1 UCO = 10^8
     amount = "000000038407B700"
 
-    final_txn_hash, sign_tag, sign_len, asn_der_sign, curve_type, origin_type, pubkey_tag, public_key = cmd.sign_txn_hash( encrypted_key_plus_wallet, address_index, receiver, amount)
+    final_txn_hash, sign_tag, sign_len, asn_der_sign, curve_type, origin_type, pubkey_tag, public_key = cmd.sign_txn_hash(hid, encrypted_key_plus_wallet, address_index, receiver, amount, hid)
     
     pubkeyPair = pubkey_pair(public_key)
     sign = sign_pair(asn_der_sign)

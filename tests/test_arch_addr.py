@@ -5,7 +5,7 @@ def test_get_arch_addr(cmd, hid):
     # Need First Address Index
     address_index = "00000000"
 
-    curve_type, hash_type, hash_enc_pub_key = cmd.get_arch_addr(encrypted_key_plus_wallet, address_index)
+    curve_type, hash_type, hash_enc_pub_key = cmd.get_arch_addr(hid, encrypted_key_plus_wallet, address_index)
 
     # curve_type => 0: ED25519, 1: NISTP256, 2: SECP256K1
     # hash_type => 0 -> SHA256 (sha2) 1 -> SHA512 (sha2) 2 -> SHA3_256 (keccak) 3 -> SHA3_512 (keccak) 4 -> BLAKE2B

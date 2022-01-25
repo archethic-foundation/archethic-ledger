@@ -1,5 +1,5 @@
-def test_get_public_key(cmd):
-    curve_type, device_origin, path_form, x, y = cmd.get_public_key(
+def test_get_public_key(cmd, hid):
+    curve_type, device_origin, path_form, x, y = cmd.get_public_key(hid,
         display=False
     )  # type: hex, hex, hex, hex, hex
 

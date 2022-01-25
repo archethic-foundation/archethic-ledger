@@ -54,6 +54,7 @@ jobs:
       image: ghcr.io/ledgerhq/speculos:latest
       ports:
         - 1234:1234
+        - 5000:5000
         - 9999:9999
         - 40000:40000
         - 41000:41000
@@ -74,7 +75,7 @@ jobs:
       - name: Run test
         run: |
           apt update && apt install -qy gcc  # /!\ workaround for pysha3
-          nohup bash -c "python /speculos/speculos.py bin/app.elf --apdu-port 9999 --button-port 42000 --automation-port 43000 --display headless" > speculos.log 2<&1 &
+          nohup bash -c "python /speculos/speculos.py bin/app.elf --apdu-port 5000 --seed hex:6fa774718b0f086101e7a0bf43f81944f2eea0392bc3452ac314cc444f19978989c62be4110f8fd3e543875e9f3fe2e2240f554cf16cfebf673b112ac44ec016 --display headless" > speculos.log 2<&1 &
           cd tests && pip install -r requirements.txt && pytest --headless
 
       - name: Upload Speculos log

@@ -4,7 +4,7 @@ from typing import Tuple
 from ledgercomm import Transport
 
 from archethic_client.archethic_cmd_builder import ArchethicCommandBuilder, InsType
-from archethic_client.button import Button
+import requests
 from archethic_client.exception import DeviceException
 from archethic_client.transaction import Transaction
 
@@ -65,11 +65,22 @@ class ArchethicCommand:
 
         return major, minor, patch
 
-    def get_public_key(self, display: bool = False) -> Tuple[hex, hex, hex, hex, hex]:
-        sw, response = self.transport.exchange_raw(
+    def get_public_key(self, hid, display: bool = False) -> Tuple[hex, hex, hex, hex, hex]:
+        self.transport.send_raw(
             self.builder.get_public_key(display=display)
         )  # type: int, bytes
 
+
+        if (not hid):
+            button = "http://127.0.0.1:5000/button/"
+            url = button + "right"
+            payload = '{"action":"press-and-release"}'
+            for _ in range(10):
+                res = requests.post(url, data=payload)
+            url = button + "both"
+            res = requests.post(url, data=payload)
+
+        sw, response = self.transport.recv()
         if sw != 0x9000:
             raise DeviceException(error_code=sw, ins=InsType.INS_GET_PUBLIC_KEY)
 
@@ -100,10 +111,21 @@ class ArchethicCommand:
 
         return curve_type, device_origin, path_form, x, y
 
-    def get_arch_addr(self,  enc_oc_wallet, addr_index, display: bool = False ): 
-        sw, response = self.transport.exchange_raw(
+    def get_arch_addr(self, hid, enc_oc_wallet, addr_index, display: bool = False ): 
+        self.transport.send_raw(
             self.builder.get_arch_address( enc_oc_wallet, addr_index, display=display,)
         )  # type: int, bytes
+
+        if (not hid):
+            button = "http://127.0.0.1:5000/button/"
+            url = button + "right"
+            payload = '{"action":"press-and-release"}'
+            for _ in range(6):
+                res = requests.post(url, data=payload)
+            url = button + "both"
+            res = requests.post(url, data=payload)
+
+        sw, response = self.transport.recv()
 
         if sw != 0x9000:
             raise DeviceException(error_code=sw, ins=InsType.INS_GET_PUBLIC_KEY)
@@ -123,12 +145,23 @@ class ArchethicCommand:
 
         return curve_type, hash_type, hash_enc_pub_key
 
-    def sign_txn_hash(self,  enc_oc_wallet, addr_index, reciever_addr, amount, display: bool = False):
+    def sign_txn_hash(self, hid, enc_oc_wallet, addr_index, reciever_addr, amount, display: bool = False):
 
-        sw, response = self.transport.exchange_raw(
+        self.transport.send_raw(
             self.builder.sign_txn_hash_build(enc_oc_wallet, addr_index, reciever_addr, amount, display)
         )  # type: int, bytes
 
+        if (not hid):
+            button = "http://127.0.0.1:5000/button/"
+            url = button + "right"
+            payload = '{"action":"press-and-release"}'
+            for _ in range(7):
+                res = requests.post(url, data=payload)
+            
+            url = button + "both"
+            res = requests.post(url, data=payload)
+
+        sw, response = self.transport.recv()
         if sw != 0x9000:
             raise DeviceException(error_code=sw, ins=InsType.INS_GET_PUBLIC_KEY)
 
