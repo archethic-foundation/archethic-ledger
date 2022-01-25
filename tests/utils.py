@@ -25,7 +25,7 @@ EllipticCurve = collections.namedtuple('EllipticCurve', 'name p a b g n h')
 # )
 
 curve = EllipticCurve(
-    'Secp255k1',
+    'SECP256K1',
     # Field characteristic.
     p=0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f,
     # Curve coefficients.
@@ -215,8 +215,8 @@ def sign_message(private_key, message):
     return (r, s)
 
 
-def verify_signature(public_key, message, signature):
-    z = message
+def verify_signature(public_key, hash_message, signature):
+    z = hash_message
     r, s = signature
     strt = time.time()
     w = inverse_mod(s, curve.n)
@@ -238,39 +238,22 @@ def str_to_hex_int(hex_str) -> hex:
     return hex_int
 
 def pubkey_pair(publicKey):
-    x = []
-    y = []
-    offset = 0
-    uncompressed = publicKey[offset: offset + 2]
-    
-    offset += 2
-    x = publicKey[offset: offset+64]
-    offset += 64
-    y = publicKey[offset: offset+64]
-    offset += 64
-    
+    publicKey = publicKey[6:]
+    x = publicKey[:int(len(publicKey)/2)]
+    y = publicKey[int(len(publicKey)/2):]
     return (str_to_hex_int(x), str_to_hex_int(y))
 
 def sign_pair(signature):
-    offset = 0
+    #30 || L || 02 || Lr || r || 02 || Ls || s
+    lr_o = 2 + 2 + 2
+    r_o = lr_o + 2
+    lr = str_to_hex_int(signature[lr_o:r_o])
     
-    # Skipping 30 and L
-    offset += 4
-    r_tag = signature[offset: offset + 2]
+    ls_o = r_o + lr*2 + 2
+    s_o = ls_o + 2
+    ls = str_to_hex_int(signature[ls_o:s_o])
     
-    offset += 2
-    r_len = int(signature[offset: offset+2], base=16)
-    offset += 2
-    r = signature[offset: offset + 64]
-    offset += 64
-    
-
-    s_tag = signature[offset: offset + 2]
-    
-    offset += 2
-    s_len = int(signature[offset: offset+2])
-    offset += 2
-    s = signature[offset: offset + 64]
-    offset += 64
+    r = signature[r_o: r_o + lr*2]
+    s = signature[s_o: s_o + ls*2]
 
     return (str_to_hex_int(r), str_to_hex_int(s))
