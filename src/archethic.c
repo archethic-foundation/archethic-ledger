@@ -47,6 +47,8 @@ void decryptWallet(uint8_t *ecdhPointX, uint8_t ecdhPointLen, uint8_t *dataBuffe
 
         cx_aes_key_t walletAESkey;
         cx_aes_init_key(wallet_key, 32, &walletAESkey);
+
+        // Encrypt == Decrypt in CTR mode, hence using CX_ENCRYPT for decrypt
         *walletLen = cx_aes_iv(&walletAESkey, CX_ENCRYPT | CX_CHAIN_CTR | CX_LAST | CX_PAD_NONE, wallet_iv, 16, dataBuffer + 16 + 32, dataLen - 16 - 32, encodedWallet, *walletLen);
     }
     else
@@ -62,7 +64,7 @@ void decryptWallet(uint8_t *ecdhPointX, uint8_t ecdhPointLen, uint8_t *dataBuffe
 
 void getBIP44Path(uint32_t address_index, uint8_t *encoded_wallet, uint8_t wallet_len, uint8_t sequence_no, char *string_bip_44, uint8_t *bip44_len)
 {
-    if (wallet_len < 5 * sequence_no + 37)
+    if (wallet_len < 5 * sequence_no + 39)
         return;
     // strncpy(string_bip_44, "m/44'/650'/ffff'/0'/0'", 60);
     int coin_type = (encoded_wallet[5 * sequence_no + 34] << 8) | encoded_wallet[5 * sequence_no + 35];
@@ -82,7 +84,7 @@ void getBIP44Path(uint32_t address_index, uint8_t *encoded_wallet, uint8_t walle
 
 void generateKeyFromWallet(uint32_t address_index, uint8_t *encoded_wallet, uint8_t *wallet_len, uint32_t sequence_no, uint8_t *curve_type, cx_ecfp_private_key_t *privateKey, cx_ecfp_public_key_t *publicKey)
 {
-    if (*wallet_len < 5 * sequence_no + 37)
+    if (*wallet_len < 5 * sequence_no + 39)
         return;
     uint32_t coin_type = (encoded_wallet[5 * sequence_no + 34] << 8) | encoded_wallet[5 * sequence_no + 35];
     uint32_t account = (encoded_wallet[5 * sequence_no + 36] << 8) | encoded_wallet[5 * sequence_no + 37];
