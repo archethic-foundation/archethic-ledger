@@ -37,7 +37,7 @@ The flow processed in [GitHub Actions](https://github.com/features/actions) is t
 
 It outputs 2 artifacts:
 
-- `boilerplate-app-debug` within output files of the compilation process in debug mode
+- `archethic-app-debug` within output files of the compilation process in debug mode
 - `speculos-log` within APDU command/response when executing end-to-end tests
 
 ## Tests with Ledger device (Nano S)
