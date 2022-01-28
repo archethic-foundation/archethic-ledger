@@ -20,9 +20,9 @@ APPVERSION_P = 1
 APPVERSION   = "$(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)"
 
 ifeq ($(TARGET_NAME),TARGET_NANOX)
-    ICONNAME=xarchethic.gif
+    ICONNAME=icons/archethic_x.gif
 else
-    ICONNAME=archethic.gif
+    ICONNAME=icons/archethic.gif
 endif
 
 all: default
