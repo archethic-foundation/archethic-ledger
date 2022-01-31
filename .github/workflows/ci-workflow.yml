@@ -23,9 +23,9 @@ jobs:
         with:
           name: archethic-app-debug
           path: |
-          bin
-          debug
-          
+            bin
+            debug
+
   job_scan_build:
     name: Clang Static Analyzer
     needs: job_build_debug
