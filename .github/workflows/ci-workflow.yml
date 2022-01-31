@@ -22,8 +22,10 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: archethic-app-debug
-          path: bin
-
+          path: |
+          bin
+          debug
+          
   job_scan_build:
     name: Clang Static Analyzer
     needs: job_build_debug
