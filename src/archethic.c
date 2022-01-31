@@ -204,8 +204,14 @@ void getTransactionHash(uint8_t *senderAddr, uint8_t senderAddrLen,
     memcpy(tx, version, 4);
     index += 4;
 
-    memcpy(tx + index, senderAddr, senderAddrLen);
-    index += senderAddrLen;
+    /*
+     * Till V1 Specs on TestNet are implemented,
+     * the Curve Type will not be used in the Address.
+     * After V1 Specs are implemented, remove
+     * +1 from senderAddr and -1 from senderAddrLen
+     */
+    memcpy(tx + index, senderAddr + 1, senderAddrLen - 1);
+    index += senderAddrLen - 1;
 
     memcpy(tx + index, &tx_type, 1);
     index += 1;
@@ -222,8 +228,14 @@ void getTransactionHash(uint8_t *senderAddr, uint8_t senderAddrLen,
     memcpy(tx + index, &total_uco_transfers, 1);
     index += 1;
 
-    memcpy(tx + index, receiveAddr, receiveAddrLen);
-    index += receiveAddrLen;
+    /*
+     * Till V1 Specs on TestNet are implemented,
+     * the Curve Type will not be used in the Address.
+     * After V1 Specs are implemented, remove
+     * +1 from receiveAddr and -1 from receiveAddrLen
+     */
+    memcpy(tx + index, receiveAddr + 1, receiveAddrLen - 1);
+    index += receiveAddrLen - 1;
 
     memcpy(tx + index, amount, 8);
     index += 8;
