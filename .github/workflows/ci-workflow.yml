@@ -25,6 +25,7 @@ jobs:
           path: |
             bin
             debug
+            load.sh
 
   job_scan_build:
     name: Clang Static Analyzer
