@@ -70,7 +70,6 @@ class ArchethicCommand:
             self.builder.get_public_key(display=display)
         )  # type: int, bytes
 
-
         if (not hid):
             button = "http://127.0.0.1:5000/button/"
             url = button + "right"
@@ -100,20 +99,20 @@ class ArchethicCommand:
         x: hex = response[offset:offset + 64]
         offset += 64
         y: hex = response[offset:offset + 64]
-        
+
         # curve_type => 0: ED25519, 1: NISTP256, 2: SECP256K1
         # device_origin => 0 -> Onchain Wallet , 1 -> Software wallet , 2 -> TPM(Node) , 3 -> Yubikey(Node, hardware Wallet) , 4 -> Ledger (Hardware Wallet)
         # path_form => 04 means uncompressed form
         # x => x on curve path uncompressed form
         # y => y on curve path uncompressed form
 
-        assert len(response) == 134 # 1 bytes + 1 bytes + 1 byte + 32 bytes + 32 bytes
+        assert len(response) == 134  # 1 bytes + 1 bytes + 1 byte + 32 bytes + 32 bytes
 
         return curve_type, device_origin, path_form, x, y
 
-    def get_arch_addr(self, hid, enc_oc_wallet, addr_index, display: bool = False ): 
+    def get_arch_addr(self, hid, enc_oc_wallet, addr_index, display: bool = False):
         self.transport.send_raw(
-            self.builder.get_arch_address( enc_oc_wallet, addr_index, display=display,)
+            self.builder.get_arch_address(enc_oc_wallet, addr_index, display=display,)
         )  # type: int, bytes
 
         if (not hid):
@@ -148,7 +147,8 @@ class ArchethicCommand:
     def sign_txn_hash(self, hid, enc_oc_wallet, addr_index, reciever_addr, amount, display: bool = False):
 
         self.transport.send_raw(
-            self.builder.sign_txn_hash_build(enc_oc_wallet, addr_index, reciever_addr, amount, display)
+            self.builder.sign_txn_hash_build(
+                enc_oc_wallet, addr_index, reciever_addr, amount, display)
         )  # type: int, bytes
 
         if (not hid):
@@ -157,7 +157,7 @@ class ArchethicCommand:
             payload = '{"action":"press-and-release"}'
             for _ in range(7):
                 res = requests.post(url, data=payload)
-            
+
             url = button + "both"
             res = requests.post(url, data=payload)
 
@@ -167,29 +167,26 @@ class ArchethicCommand:
 
         response = response.hex()
 
-        #  APDU Response have following 
-        # Final Tx Hash (SHA256) || ASN DER Signature || Corresponding public key from whose private key the signature was made
+        #  APDU Response have following
+        # Final Tx Hash (SHA256) || Corresponding public key from whose private key the signature was made ||  ASN DER Signature ||
 
         offset = 0
         final_txn_hash = response[offset: offset + 64]
         offset += 64
+
+        curve_type = response[offset: offset + 2]
+        origin_type = response[offset + 2: offset + 4]
+        pubkey_tag = response[offset + 4: offset + 6]
+        # Check for the form 04 mean it is uncompressed
+        assert(pubkey_tag == "04")
+        public_key = response[offset:offset+67*2]
+        offset += 67*2
+
         sign_tag: hex = response[offset: offset + 2]
-        # Check if sign tag found if not malformed address
+        # Check if sign tag
         assert(sign_tag == "30")
         sign_len = response[offset + 2: offset + 4]
         asn_der_sign = response[offset: offset + 4 + (int(sign_len, base=16)*2)]
         offset += (int(sign_len, base=16)*2) + 4
 
-        curve_type = response[offset: offset + 2]
-
-        origin_type = response[offset + 2 : offset + 4]
-
-        pubkey_tag = response[offset +4 : offset + 6]
-        # Check for the form 04 mean it is uncompressed
-        assert(pubkey_tag == "04")
-        public_key = response[offset:]
-
-        return final_txn_hash, sign_tag, sign_len, asn_der_sign, curve_type, origin_type, pubkey_tag, public_key
-
-
-   
+        return final_txn_hash, curve_type, origin_type, pubkey_tag, public_key, sign_tag, sign_len, asn_der_sign

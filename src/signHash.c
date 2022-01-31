@@ -76,9 +76,12 @@ void ui_validate_sign_hash(bool choice)
 {
     if (choice)
     {
-        // Perform ECDSA Sign Hash After Approved By User
-        // sender address => address index + 1
-        // signing key => address index
+        /*
+         * Perform ECDSA Sign on hash after approved by user
+         * sender address => address index + 1
+         * signing key => address index
+         * returns the Public Key + ASN SIGN
+         */
         performECDSA(g_tx.txHash, g_tx.txHashLen, g_tx.address_index,
                      g_Wallet.encodedWallet, &g_Wallet.walletLen, 0,
                      g_Wallet.encodedWallet, &g_Wallet.walletLen);

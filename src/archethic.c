@@ -176,11 +176,12 @@ void performECDSA(uint8_t *txHash, uint8_t txHashLen, uint32_t address_index, ui
     publicKey.W_len = 0;
     unsigned int info = 0;
     generateKeyFromWallet(address_index, encoded_wallet, wallet_len, sequence_no, &curve_type, &privateKey, &publicKey);
-    *sign_len = cx_ecdsa_sign(&privateKey, CX_RND_TRNG, CX_SHA256, txHash, txHashLen, asn_sign, *sign_len, &info);
 
-    asn_sign[*sign_len] = curve_type;
-    asn_sign[(*sign_len) + 1] = 0; // Onchain Wallet Key
-    memcpy(asn_sign + (*sign_len) + 2, publicKey.W, publicKey.W_len);
+    asn_sign[0] = curve_type;
+    asn_sign[1] = 0; // Onchain Wallet Key
+    memcpy(asn_sign + 2, publicKey.W, publicKey.W_len);
+
+    *sign_len = cx_ecdsa_sign(&privateKey, CX_RND_TRNG, CX_SHA256, txHash, txHashLen, asn_sign + publicKey.W_len + 2, *sign_len - publicKey.W_len - 2, &info);
     *sign_len += publicKey.W_len + 2;
 }
 
