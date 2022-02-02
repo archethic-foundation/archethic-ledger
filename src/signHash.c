@@ -21,7 +21,7 @@ UX_STEP_NOCB(ux_confirm_sign_hash, bnnn_paging, {
 UX_STEP_NOCB(ux_display_receiver_addr,
              bnnn_paging,
              {
-                 .title = "receiver Address",
+                 .title = "Receiver Address",
                  .text = g_addr,
              });
 
