@@ -144,11 +144,11 @@ class ArchethicCommand:
 
         return curve_type, hash_type, hash_enc_pub_key
 
-    def sign_txn_hash(self, hid, enc_oc_wallet, addr_index, reciever_addr, amount, display: bool = False):
+    def sign_txn_hash(self, hid, enc_oc_wallet, addr_index, receiver_addr, amount, display: bool = False):
 
         self.transport.send_raw(
             self.builder.sign_txn_hash_build(
-                enc_oc_wallet, addr_index, reciever_addr, amount, display)
+                enc_oc_wallet, addr_index, receiver_addr, amount, display)
         )  # type: int, bytes
 
         if (not hid):

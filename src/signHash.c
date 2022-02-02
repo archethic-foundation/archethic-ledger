@@ -17,11 +17,11 @@ UX_STEP_NOCB(ux_confirm_sign_hash, bnnn_paging, {
                                                     .text = "details to Sign",
                                                 });
 
-// Step with title/test for reciever
-UX_STEP_NOCB(ux_display_reciever_addr,
+// Step with title/test for receiver
+UX_STEP_NOCB(ux_display_receiver_addr,
              bnnn_paging,
              {
-                 .title = "Reciever Address",
+                 .title = "Receiver Address",
                  .text = g_addr,
              });
 
@@ -66,7 +66,7 @@ UX_STEP_CB(ux_display_reject_sign_hash,
 // #4 screen: reject button
 UX_FLOW(ux_display_sign_hash_main,
         &ux_confirm_sign_hash,
-        &ux_display_reciever_addr,
+        &ux_display_receiver_addr,
         &ux_display_txn_amount,
         &ux_display_hash_addr_bip44,
         &ux_display_approve_sign_hash,

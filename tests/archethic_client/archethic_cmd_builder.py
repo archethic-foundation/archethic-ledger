@@ -175,7 +175,7 @@ class ArchethicCommandBuilder:
                                 p2=0x00,
                                 cdata=cdata)
 
-    def sign_txn_hash_build(self, enc_oc_wallet, addr_index, reciever_addr, amount, display: bool = False):
+    def sign_txn_hash_build(self, enc_oc_wallet, addr_index, receiver_addr, amount, display: bool = False):
         """Command builder for SIGN_TX.
 
         Parameters
@@ -184,10 +184,10 @@ class ArchethicCommandBuilder:
             The Encyrpted onchain wallet with key or in short encrypted key plus wallet
         addr_index: string
             The address index to which address need to be derived
-        reciever_addr: string
-            The reciever address which will recieve the amount
+        receiver_addr: string
+            The receiver address which will receive the amount
         amount: string
-            The amount which will be transferred to reciever (in hex).
+            The amount which will be transferred to receiver (in hex).
         display : bool  
             Whether you want to display the address on the device.
 
@@ -197,7 +197,7 @@ class ArchethicCommandBuilder:
             APDU command for SIGN_TX.
         """
 
-        cdata: bytes = bytes.fromhex(addr_index + reciever_addr + amount + enc_oc_wallet)
+        cdata: bytes = bytes.fromhex(addr_index + receiver_addr + amount + enc_oc_wallet)
 
         return self.serialize(cla=self.CLA,
                                 ins=InsType.INS_SIGN_TX,

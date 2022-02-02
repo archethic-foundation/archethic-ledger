@@ -16,7 +16,7 @@ def test_sign_txn_hash(cmd, hid):
     # Address Index to perform signature
     address_index = "00000000"
 
-    # Reciever Address as per specification
+    # Receiver Address as per specification
     receiver = "020019CA33A6CA9E69B5C29E6E8497CC5AC9675952F847347709AD39C92C1B1B5313"
 
     # 151 UC0 in hex, 1 UCO = 10^8
