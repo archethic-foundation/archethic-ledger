@@ -126,7 +126,7 @@ void handleSignHash(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint16_t dataLe
     g_tx.receiveAddrLen = addrLen;
     dataBuffer += addrLen;
     dataLength -= addrLen;
-    snprintf(g_addr, sizeof(g_addr), "0x%.*H", sizeof(g_tx.receiveAddr), g_tx.receiveAddr);
+    snprintf(g_addr, sizeof(g_addr), "%.*H", sizeof(g_tx.receiveAddr), g_tx.receiveAddr);
 
     // convert amount (big endian)
     memcpy(g_tx.amount, dataBuffer, 8);
@@ -169,7 +169,7 @@ void handleSignHash(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint16_t dataLe
     // create transaction and get its hash (sha256)
     getTransactionHash(g_tx.senderAddr, g_tx.senderAddrLen, g_tx.receiveAddr, g_tx.receiveAddrLen, g_tx.amount, g_tx.txHash, &g_tx.txHashLen);
     memset(g_hash, 0, sizeof(g_hash));
-    snprintf(g_hash, sizeof(g_hash), "0x%.*H", sizeof(g_tx.txHash), g_tx.txHash);
+    snprintf(g_hash, sizeof(g_hash), "%.*H", sizeof(g_tx.txHash), g_tx.txHash);
 
     // set gui triggers
     g_validate_hash_callback = &ui_validate_sign_hash;

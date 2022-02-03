@@ -113,7 +113,7 @@ void handleGetAddress(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint16_t data
 
     generateArchEthicAddress(0, address_index, g_wallet.encodedWallet, &g_wallet.walletLen, 0, g_addr.arch_address, &g_addr.arch_addr_len);
     memset(g_address, 0, sizeof(g_address));
-    snprintf(g_address, sizeof(g_address), "0x%.*H", sizeof(g_addr.arch_address), g_addr.arch_address);
+    snprintf(g_address, sizeof(g_address), "%.*H", sizeof(g_addr.arch_address), g_addr.arch_address);
 
     g_validate_addr_callback = &ui_validate_address_arch;
     ux_flow_init(0, ux_display_arch_addr_flow, NULL);
