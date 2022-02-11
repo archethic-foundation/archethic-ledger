@@ -1,3 +1,19 @@
+"""/*******************************************************************************
+*   Archethic Ledger Bolos App
+*   (c) 2022 Varun Deshpande, Uniris
+*
+*  Licensed under the GNU Affero General Public License, Version 3 (the "License");
+*  you may not use this file except in compliance with the License.
+*  You may obtain a copy of the License at
+*
+*      https://www.gnu.org/licenses/agpl-3.0.en.html
+*
+*  Unless required by applicable law or agreed to in writing, software
+*  distributed under the License is distributed on an "AS IS" BASIS,
+*  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+*  See the License for the specific language governing permissions and
+*  limitations under the License.
+********************************************************************************/"""
 #!/usr/bin/env python3
 
 import collections
@@ -32,7 +48,8 @@ curve = EllipticCurve(
     a=0x0000000000000000000000000000000000000000000000000000000000000000,
     b=0x0000000000000000000000000000000000000000000000000000000000000007,
     # Base point.
-    g=(0x79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798, 0x483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8),
+    g=(0x79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798,
+       0x483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8),
     # Subgroup order.
     n=0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141,
     # Subgroup cofactor.
@@ -198,6 +215,7 @@ def hash_message(message):
     assert z.bit_length() <= curve.n.bit_length()
     return z
 
+
 def sign_message(private_key, message):
     z = hash_message(message)
 
@@ -233,9 +251,11 @@ def verify_signature(public_key, hash_message, signature):
     else:
         return False
 
+
 def str_to_hex_int(hex_str) -> hex:
     hex_int = int(hex_str, base=16)
     return hex_int
+
 
 def pubkey_pair(publicKey):
     publicKey = publicKey[6:]
@@ -243,16 +263,17 @@ def pubkey_pair(publicKey):
     y = publicKey[int(len(publicKey)/2):]
     return (str_to_hex_int(x), str_to_hex_int(y))
 
+
 def sign_pair(signature):
-    #30 || L || 02 || Lr || r || 02 || Ls || s
+    # 30 || L || 02 || Lr || r || 02 || Ls || s
     lr_o = 2 + 2 + 2
     r_o = lr_o + 2
     lr = str_to_hex_int(signature[lr_o:r_o])
-    
+
     ls_o = r_o + lr*2 + 2
     s_o = ls_o + 2
     ls = str_to_hex_int(signature[ls_o:s_o])
-    
+
     r = signature[r_o: r_o + lr*2]
     s = signature[s_o: s_o + ls*2]
 

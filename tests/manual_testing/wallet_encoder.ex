@@ -1,4 +1,23 @@
+#*******************************************************************************
+#   Archethic Ledger Bolos App
+#   (c) 2022 Varun Deshpande, Uniris
+#
+#  Licensed under the GNU Affero General Public License, Version 3 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      https://www.gnu.org/licenses/agpl-3.0.en.html
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#*******************************************************************************
+
+
 # Archethic Onchain Wallet Generator and Encoder, using V1 specifications from https://hackmd.io/@219_ne6IRI6utatg6Fc8ZA/B1g0TU0uK
+
 
 origin_public_key = "04523f9d4068555b8c30bd03507f8c4e454a399b39885555dba91477b3640047cbfb8201d11567faa7956b41bb4b7f207a0fd1641d77f32f53ed9f38b7ecff12fb"
 
