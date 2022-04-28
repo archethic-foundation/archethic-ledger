@@ -1,6 +1,6 @@
-# ArchEthic Ledger Device Application (Nano S)
+# Archethic Ledger Device Application (Nano S)
 
-This is a BOLOS application which can be to interact with ArchEthic TestNet using Ledger Nano S Device.
+This is a BOLOS application which can be to interact with Archethic TestNet using Ledger Nano S Device.
 
 ## Prerequisite
 
