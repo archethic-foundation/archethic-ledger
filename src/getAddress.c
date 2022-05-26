@@ -20,7 +20,7 @@
 
 static action_validate_cb g_validate_addr_callback;
 
-static char g_bip44_path[40];
+static char g_derivation_path[30];
 static char g_address[70];
 
 static addr_struct_t g_addr;
@@ -36,8 +36,8 @@ UX_STEP_NOCB(ux_display_confirm_address, bnnn_paging, {
 UX_STEP_NOCB(ux_display_addr_bip44,
              bnnn_paging,
              {
-                 .title = "bip44 Path",
-                 .text = g_bip44_path,
+                 .title = "Derivation Path",
+                 .text = g_derivation_path,
              });
 
 // Step with title/text for public key
@@ -99,21 +99,34 @@ void ui_validate_address_arch(bool choice)
 void handleGetAddress(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint16_t dataLength, volatile unsigned int *flags)
 {
     // convert address index (big endian)
-    uint32_t address_index = 0;
-    for (int c = 0; c < 4; c++)
-        address_index |= (uint32_t)dataBuffer[c] << 8 * (3 - c);
+    // uint32_t address_index = 0;
+    // for (int c = 0; c < 4; c++)
+    //     address_index |= (uint32_t)dataBuffer[c] << 8 * (3 - c);
 
-    dataBuffer += 4;
-    dataLength -= 4;
+    // dataBuffer += 4;
+    // dataLength -= 4;
+
+    uint8_t service_index = 0;
+    service_index = dataBuffer[0];
+
+    dataBuffer += 1;
+    dataLength -= 1;
+
+    // PRINTF("Address : \n %d \n", address_index);
+    PRINTF("Service Index : \n %d \n", service_index);
 
     uint8_t ecdhPointX[32] = {0};
     performECDH(dataBuffer, 65, ecdhPointX);
     dataBuffer += 65;
     dataLength -= 65;
 
+    PRINTF("Point X  Buffer: \n %.*H \n", 32, ecdhPointX);
+
     // decrypt wallet
     g_wallet.walletLen = sizeof(g_wallet.encodedWallet);
+
     decryptWallet(ecdhPointX, sizeof(ecdhPointX), dataBuffer, dataLength, g_wallet.encodedWallet, &g_wallet.walletLen);
+
     if (g_wallet.walletLen == 5)
     { // return "BADDECODE" if authentication for wallet decryption failed
         memcpy(G_io_apdu_buffer, g_wallet.encodedWallet, g_wallet.walletLen);
@@ -123,11 +136,18 @@ void handleGetAddress(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint16_t data
     else
         *flags |= IO_ASYNCH_REPLY;
 
-    uint8_t bip44pathlen;
-    memset(g_bip44_path, 0, sizeof(g_bip44_path));
-    getBIP44Path(address_index, g_wallet.encodedWallet, g_wallet.walletLen, 0, g_bip44_path, &bip44pathlen);
+    // If this is reached then we will have our encoded wallet
+    PRINTF("\n Encoded Wallet: %.*H \n ", g_wallet.walletLen, g_wallet.encodedWallet);
 
-    generateArchEthicAddress(0, address_index, g_wallet.encodedWallet, &g_wallet.walletLen, 0, g_addr.arch_address, &g_addr.arch_addr_len);
+    uint8_t bip44pathlen;
+    memset(g_derivation_path, 0, sizeof(g_derivation_path));
+    uint32_t seek_bytes = 0;
+    getDerivationPath(service_index, g_wallet.encodedWallet, g_wallet.walletLen, 0, g_derivation_path, &bip44pathlen, &seek_bytes);
+
+    PRINTF("\n Derivation Path from Main fn.: %.*H \n", sizeof(g_derivation_path), g_derivation_path);
+    PRINTF("\n Seek Bytes: %d \n", seek_bytes);
+
+    generateArchEthicAddress(0, service_index, g_wallet.encodedWallet, &g_wallet.walletLen, 0, g_addr.arch_address, &g_addr.arch_addr_len, seek_bytes, 0);
     memset(g_address, 0, sizeof(g_address));
     snprintf(g_address, sizeof(g_address), "%.*H", sizeof(g_addr.arch_address), g_addr.arch_address);
 
