@@ -27,9 +27,11 @@
 
 typedef void (*action_validate_cb)(bool);
 
+#define MAX_ENCODE_WALLET_LEN 200
+
 typedef struct
 {
-    uint8_t encodedWallet[200];
+    uint8_t encodedWallet[MAX_ENCODE_WALLET_LEN];
     uint8_t walletLen;
 } onchain_wallet_struct_t;
 

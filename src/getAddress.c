@@ -112,15 +112,10 @@ void handleGetAddress(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint16_t data
     dataBuffer += 1;
     dataLength -= 1;
 
-    // PRINTF("Address : \n %d \n", address_index);
-    PRINTF("Service Index : \n %d \n", service_index);
-
     uint8_t ecdhPointX[32] = {0};
     performECDH(dataBuffer, 65, ecdhPointX);
     dataBuffer += 65;
     dataLength -= 65;
-
-    PRINTF("Point X  Buffer: \n %.*H \n", 32, ecdhPointX);
 
     // decrypt wallet
     g_wallet.walletLen = sizeof(g_wallet.encodedWallet);
@@ -137,15 +132,11 @@ void handleGetAddress(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint16_t data
         *flags |= IO_ASYNCH_REPLY;
 
     // If this is reached then we will have our encoded wallet
-    PRINTF("\n Encoded Wallet: %.*H \n ", g_wallet.walletLen, g_wallet.encodedWallet);
-
+   
     uint8_t bip44pathlen;
     memset(g_derivation_path, 0, sizeof(g_derivation_path));
     uint32_t seek_bytes = 0;
     getDerivationPath(service_index, g_wallet.encodedWallet, g_wallet.walletLen, 0, g_derivation_path, &bip44pathlen, &seek_bytes);
-
-    PRINTF("\n Derivation Path from Main fn.: %.*H \n", sizeof(g_derivation_path), g_derivation_path);
-    PRINTF("\n Seek Bytes: %d \n", seek_bytes);
 
     generateArchEthicAddress(0, service_index, g_wallet.encodedWallet, &g_wallet.walletLen, 0, g_addr.arch_address, &g_addr.arch_addr_len, seek_bytes, 0);
     memset(g_address, 0, sizeof(g_address));

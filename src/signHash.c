@@ -21,9 +21,9 @@
 static action_validate_cb g_validate_hash_callback;
 
 static char g_hash[67];
-static char g_addr[72];
+static char g_addr[70];
 static char g_amount[30];
-static char g_bip44_path[40];
+static char g_derivation_path[34];
 static tx_struct_t g_tx;
 static onchain_wallet_struct_t g_Wallet;
 
@@ -54,7 +54,7 @@ UX_STEP_NOCB(ux_display_hash_addr_bip44,
              bnnn_paging,
              {
                  .title = "Sig w/ Derivation Path",
-                 .text = g_bip44_path,
+                 .text = g_derivation_path,
              });
 
 // Step with approve button
@@ -98,30 +98,28 @@ void ui_validate_sign_hash(bool choice)
          * signing key => address index
          * returns the Public Key + ASN SIGN
          */
-        PRINTF("\n Transaction Hash: %.*H \n", g_tx.txHashLen, g_tx.txHash);
-        PRINTF("\n Signing Address Index: %d\n", g_tx.address_index);
-        PRINTF("\n Encoded Wallet Length: %d \n", g_Wallet.walletLen);
-        PRINTF("\n Encoded Wallet: %.*H", g_Wallet.walletLen, g_Wallet.encodedWallet);
+        // PRINTF("\n Transaction Hash: %.*H \n", g_tx.txHashLen, g_tx.txHash);
+        // PRINTF("\n Signing Address Index: %d\n", g_tx.address_index);
+        // PRINTF("\n Encoded Wallet Length: %d \n", g_Wallet.walletLen);
+        // PRINTF("\n Encoded Wallet: %.*H", g_Wallet.walletLen, g_Wallet.encodedWallet);
         performECDSA(g_tx.txHash, g_tx.txHashLen, 0,
                      g_Wallet.encodedWallet, &g_Wallet.walletLen, g_tx.service_index,
                      g_tx.seek_bytes, g_Wallet.encodedWallet, &g_Wallet.walletLen);
 
-        PRINTF("\n Logic Has Exec. perform ECDSA. \n");
-        PRINTF("\n Signature: %.*H \n", g_Wallet.walletLen, g_Wallet.encodedWallet);
-        PRINTF("\n Sig Len: %d \n", g_Wallet.walletLen);
-        PRINTF("\n Txn hash Len: %d \n", g_tx.txHashLen);
-        PRINTF("\n Total Len: %d \n", g_tx.txHashLen + g_Wallet.walletLen);
-        
+        // PRINTF("\n Signature: %.*H \n", g_Wallet.walletLen, g_Wallet.encodedWallet);
+        // PRINTF("\n Sig Len: %d \n", g_Wallet.walletLen);
+        // PRINTF("\n Txn hash Len: %d \n", g_tx.txHashLen);
+        // PRINTF("\n Total Len: %d \n", g_tx.txHashLen + g_Wallet.walletLen);
+
         memcpy(G_io_apdu_buffer, g_tx.txHash, g_tx.txHashLen);
         memcpy(G_io_apdu_buffer + g_tx.txHashLen, g_Wallet.encodedWallet, g_Wallet.walletLen);
 
-        // Checking Contents of G_io_apdu_buffer
-        PRINTF("\n G_io_buf: %.*H \n", g_tx.txHashLen + g_Wallet.walletLen , G_io_apdu_buffer);
-
-        io_exchange_with_code(SW_OK, 98);
+        io_exchange_with_code(SW_OK, g_tx.txHashLen + g_Wallet.walletLen);
     }
     else
     {
+        // Reset Buffer to all 0
+        explicit_bzero(G_io_apdu_buffer, sizeof(G_io_apdu_buffer));
         io_exchange_with_code(SW_USER_REJECTED, 0);
     }
 
@@ -192,20 +190,19 @@ void handleSignHash(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint16_t dataLe
         io_exchange_with_code(SW_WRONG_WALLET, g_Wallet.walletLen);
         return;
     }
-    else
-        *flags |= IO_ASYNCH_REPLY;
+    // else
+    *flags |= IO_ASYNCH_REPLY;
 
     // Wallet Successfully Decrypted Here.
 
     uint32_t seek_bytes = 0;
     // get derivation path for display and seek bytes for current service
     uint8_t bip44pathlen;
-    memset(g_bip44_path, 0, sizeof(g_bip44_path));
-    getDerivationPath(service_index, g_Wallet.encodedWallet, g_Wallet.walletLen, 0, g_bip44_path, &bip44pathlen, &seek_bytes);
+    memset(g_derivation_path, 0, sizeof(g_derivation_path));
+    getDerivationPath(service_index, g_Wallet.encodedWallet, g_Wallet.walletLen, 0, g_derivation_path, &bip44pathlen, &seek_bytes);
 
     // get sender address using address index + 1, according to specs V1
 
-    PRINTF("\n Seek Bytes for current Service Index: %d \n", seek_bytes);
     g_tx.seek_bytes = seek_bytes;
 
     uint32_t address_index = (g_Wallet.encodedWallet[seek_bytes + 5] << 8) | g_Wallet.encodedWallet[seek_bytes + 6];
@@ -215,7 +212,6 @@ void handleSignHash(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint16_t dataLe
 
     generateArchEthicAddress(0, service_index, g_Wallet.encodedWallet, &g_Wallet.walletLen, 0, g_tx.senderAddr, &g_tx.senderAddrLen, seek_bytes, 1);
 
-    PRINTF("\n Sender Address: %.*H", g_tx.senderAddrLen, g_tx.senderAddr);
 
     // create transaction and get its hash (sha256)
     getTransactionHash(g_tx.senderAddr, g_tx.senderAddrLen, g_tx.receiveAddr, g_tx.receiveAddrLen, g_tx.amount, g_tx.txHash, &g_tx.txHashLen);
