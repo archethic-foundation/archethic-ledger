@@ -81,7 +81,7 @@ void generateArchEthicAddress(uint8_t hash_type, uint8_t service_index,
                               uint8_t *encoded_wallet, uint8_t *wallet_len, uint32_t sequence_no,
                               uint8_t *address, uint8_t *address_len, uint32_t seek_bytes, uint32_t address_index_offset);
 
-void getDerivationPath(uint8_t service_index, uint8_t *encoded_wallet, uint8_t wallet_len, uint8_t sequence_no, char *string_bip_44, uint8_t *bip44_len, uint32_t *seek_bytes);
+void getDerivationPath(uint8_t service_index, uint8_t *encoded_wallet, uint8_t wallet_len, uint8_t sequence_no, char *string_derivation_path, uint8_t *derivation_path_len, uint32_t *seek_bytes);
 
 void getTransactionHash(uint8_t *senderAddr, uint8_t senderAddrLen,
                         uint8_t *receiveAddr, uint8_t receiveAddrLen,

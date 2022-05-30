@@ -98,18 +98,10 @@ void ui_validate_sign_hash(bool choice)
          * signing key => address index
          * returns the Public Key + ASN SIGN
          */
-        // PRINTF("\n Transaction Hash: %.*H \n", g_tx.txHashLen, g_tx.txHash);
-        // PRINTF("\n Signing Address Index: %d\n", g_tx.address_index);
-        // PRINTF("\n Encoded Wallet Length: %d \n", g_Wallet.walletLen);
-        // PRINTF("\n Encoded Wallet: %.*H", g_Wallet.walletLen, g_Wallet.encodedWallet);
+        
         performECDSA(g_tx.txHash, g_tx.txHashLen, 0,
                      g_Wallet.encodedWallet, &g_Wallet.walletLen, g_tx.service_index,
                      g_tx.seek_bytes, g_Wallet.encodedWallet, &g_Wallet.walletLen);
-
-        // PRINTF("\n Signature: %.*H \n", g_Wallet.walletLen, g_Wallet.encodedWallet);
-        // PRINTF("\n Sig Len: %d \n", g_Wallet.walletLen);
-        // PRINTF("\n Txn hash Len: %d \n", g_tx.txHashLen);
-        // PRINTF("\n Total Len: %d \n", g_tx.txHashLen + g_Wallet.walletLen);
 
         memcpy(G_io_apdu_buffer, g_tx.txHash, g_tx.txHashLen);
         memcpy(G_io_apdu_buffer + g_tx.txHashLen, g_Wallet.encodedWallet, g_Wallet.walletLen);
@@ -197,16 +189,13 @@ void handleSignHash(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint16_t dataLe
 
     uint32_t seek_bytes = 0;
     // get derivation path for display and seek bytes for current service
-    uint8_t bip44pathlen;
+    uint8_t derivationPathLen;
     memset(g_derivation_path, 0, sizeof(g_derivation_path));
-    getDerivationPath(service_index, g_Wallet.encodedWallet, g_Wallet.walletLen, 0, g_derivation_path, &bip44pathlen, &seek_bytes);
+    getDerivationPath(service_index, g_Wallet.encodedWallet, g_Wallet.walletLen, 0, g_derivation_path, &derivationPathLen, &seek_bytes);
 
     // get sender address using address index + 1, according to specs V1
 
     g_tx.seek_bytes = seek_bytes;
-
-    uint32_t address_index = (g_Wallet.encodedWallet[seek_bytes + 5] << 8) | g_Wallet.encodedWallet[seek_bytes + 6];
-    g_tx.address_index = address_index;
 
     // Offset address_index by +1
 

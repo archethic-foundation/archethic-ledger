@@ -90,7 +90,7 @@ void decryptWallet(uint8_t *ecdhPointX, uint8_t ecdhPointLen, uint8_t *dataBuffe
     }
 }
 
-void getDerivationPath(uint8_t service_index, uint8_t *encoded_wallet, uint8_t wallet_len, uint8_t sequence_no, char *string_bip_44, uint8_t *bip44_len, uint32_t *seek_bytes)
+void getDerivationPath(uint8_t service_index, uint8_t *encoded_wallet, uint8_t wallet_len, uint8_t sequence_no, char *string_derivation_path, uint8_t *derivation_path_len, uint32_t *seek_bytes)
 {
     // Assuming minimum length for encoded onchain wallet be atleast 39 bytes
     // Minimum bytes a service can have is 6 bytes
@@ -114,16 +114,12 @@ void getDerivationPath(uint8_t service_index, uint8_t *encoded_wallet, uint8_t w
 
     // Now encoded wallet is pointing to total no. of services
     uint8_t total_services = encoded_wallet[seek_bytes_l];
- 
+
     seek_bytes_l += 1;
 
     // Requesting Service Index cannot be outside of total services in onchain wallet
     if (total_services < service_index)
         return;
-
-    int coin_type = 0;
-    int account = 0;
-    int address_index = 0;
 
     for (int c = 0; c <= service_index; c++)
     {
@@ -134,10 +130,14 @@ void getDerivationPath(uint8_t service_index, uint8_t *encoded_wallet, uint8_t w
             int name_len = encoded_wallet[seek_bytes_l];
             // encoded_wallet += name_len + 1;
             seek_bytes_l += name_len + 1;
-            // int path_len = encoded_wallet [0];
-            coin_type = (encoded_wallet[seek_bytes_l + 1] << 8) | encoded_wallet[seek_bytes_l + 2];
-            account = (encoded_wallet[seek_bytes_l + 3] << 8) | encoded_wallet[seek_bytes_l + 4];
-            address_index = (encoded_wallet[seek_bytes_l + 5] << 8) | encoded_wallet[seek_bytes_l + 6];
+
+            int path_len = encoded_wallet[seek_bytes_l];
+
+            // Derivation Path is in the form m/650'/0'/0'
+
+            // +1 in path len is required for null char in string
+            snprintf(string_derivation_path, path_len + 1, "%s", encoded_wallet + seek_bytes_l + 1);
+            *derivation_path_len = strlen(string_derivation_path);
             break;
         }
         else
@@ -153,23 +153,7 @@ void getDerivationPath(uint8_t service_index, uint8_t *encoded_wallet, uint8_t w
         }
     }
 
-    // int coin_type = (encoded_wallet[5 * sequence_no + 34] << 8) | encoded_wallet[5 * sequence_no + 35];
-    // int account = (encoded_wallet[5 * sequence_no + 36] << 8) | encoded_wallet[5 * sequence_no + 37];
-
     *seek_bytes = seek_bytes_l;
-
-    strncpy(string_bip_44, "m/", 3);
-    snprintf(string_bip_44 + 2, 6, "%d", coin_type);
-
-    strncpy(string_bip_44 + strlen(string_bip_44), "'/", 3);
-    snprintf(string_bip_44 + strlen(string_bip_44), 6, "%d", account);
-    strncpy(string_bip_44 + strlen(string_bip_44), "'/", 3);
-    snprintf(string_bip_44 + strlen(string_bip_44), 6, "%d", address_index);
-
-    // format_u64(string_bip_44 + strlen(string_bip_44), 11, address_index);
-    strncpy(string_bip_44 + strlen(string_bip_44), "'", 2);
-   
-    *bip44_len = strlen(string_bip_44);
 }
 
 void generateKeyFromWallet(uint32_t address_index_offset, uint8_t *encoded_wallet, uint8_t *wallet_len, uint8_t service_index, uint32_t seek_bytes, uint8_t *curve_type, cx_ecfp_private_key_t *privateKey, cx_ecfp_public_key_t *publicKey)
@@ -177,19 +161,74 @@ void generateKeyFromWallet(uint32_t address_index_offset, uint8_t *encoded_walle
     if (*wallet_len < 6 * service_index + 39)
         return;
 
-    // Assuming Derivation Path to be 6 Bytes, 2 Bytes each coin_type | account | address_index
+    // Parse the Derivation Path into components here
+    int path_len = encoded_wallet[seek_bytes];
+   
+    char temp_der_path[30];
+    explicit_bzero(temp_der_path, sizeof(temp_der_path));
 
-    uint32_t coin_type = (encoded_wallet[seek_bytes + 1] << 8) | encoded_wallet[seek_bytes + 2];
-    uint32_t account = (encoded_wallet[seek_bytes + 3] << 8) | encoded_wallet[seek_bytes + 4];
-    uint32_t address_index = (encoded_wallet[seek_bytes + 5] << 8) | encoded_wallet[seek_bytes + 6];
+    snprintf(temp_der_path, path_len + 1, "%s", encoded_wallet + seek_bytes + 1);
 
+    // Derivation path should start with m/..
+    if (temp_der_path[0] != 'm' || temp_der_path[1] != '/')
+    {
+        // Malformed Derivation path return
+        return;
+    }
+
+    uint32_t coin_type = 0;
+    uint32_t account = 0;
+    uint32_t address_index = 0;
+
+    int dig_c = 0;
+
+    // ix will be 0 for scanning coin_type, 1 for scanning account, 2 for scanning address_index
+    uint8_t ix = 0;
+
+    for (int x = 2; x < path_len; ++x)
+    {
+        if (temp_der_path[x] == '/')
+        {
+            dig_c = 0;
+            ix += 2;
+        }
+        else
+        {
+            // Only process if char is a digit
+            if (temp_der_path[x] >= '0' && temp_der_path[x] <= '9')
+            {
+                if (ix == 0)
+                {
+                    // Coin  type
+                    coin_type *= 10;
+                    coin_type += (int)(temp_der_path[x] - '0');
+                }
+                else if (ix == 1)
+                {
+                    // Account
+                    account *= 10;
+                    account += (int)(temp_der_path[x] - '0');
+                }
+                else if (ix == 2)
+                {
+                    // Index
+                    address_index *= 10;
+                    account += (int)(temp_der_path[x] - '0');
+                }
+                dig_c++;
+            }
+        }
+    }
+
+    // PRINTF("\n Coin Type %d \n", coin_type);
+    // PRINTF("\n Account %d \n", account);
+    // PRINTF("\n Addr Index %d \n", address_index);
+
+    // Offset the index if any
     address_index += address_index_offset;
 
-    // uint32_t coin_type = (encoded_wallet[5 * sequence_no + 34] << 8) | encoded_wallet[5 * sequence_no + 35];
-    // uint32_t account = (encoded_wallet[5 * sequence_no + 36] << 8) | encoded_wallet[5 * sequence_no + 37];
-
     cx_curve_t curve;
-    *curve_type = encoded_wallet[seek_bytes + 7];
+    *curve_type = encoded_wallet[seek_bytes + 1 + path_len];
     switch (*curve_type)
     {
     case 0:
@@ -207,7 +246,7 @@ void generateKeyFromWallet(uint32_t address_index_offset, uint8_t *encoded_walle
     }
     // First 4 bytes are version
     uint8_t seed_len = encoded_wallet[4];
-  
+
     deriveArchEthicKeyPair(curve, coin_type, account, address_index, encoded_wallet + 5, seed_len, privateKey, publicKey);
 }
 
@@ -243,7 +282,7 @@ void deriveArchEthicKeyPair(cx_curve_t curve, uint32_t coin_type, uint32_t accou
     // uint32_t bip44Path[] = {44 | 0x80000000, coin_type | 0x80000000, account | 0x80000000, 0x80000000, address_index | 0x80000000};
 
     // New Scheme for derivation path is
-    // m/650'/0'/0' where m/coin_type(650' fixed for now)/account/address_index
+    // m/650'/0'/0' where m/coin_type/account/address_index
     uint32_t derivationPath[] = {coin_type | 0x80000000,
                                  account | 0x80000000,
                                  address_index | 0x80000000};
@@ -296,8 +335,6 @@ void performECDSA(uint8_t *txHash, uint8_t txHashLen, uint32_t address_index_off
 
     *sign_len = cx_ecdsa_sign(&privateKey, CX_RND_TRNG, CX_SHA256, txHash, txHashLen, asn_sign + publicKey.W_len + 2, MAX_ENCODE_WALLET_LEN - publicKey.W_len - 2, &info);
     *sign_len += publicKey.W_len + 2;
-
-
 }
 
 void getTransactionHash(uint8_t *senderAddr, uint8_t senderAddrLen,

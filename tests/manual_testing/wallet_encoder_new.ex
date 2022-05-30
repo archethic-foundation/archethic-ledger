@@ -42,12 +42,20 @@ master_seed = :crypto.strong_rand_bytes(32)
 service_name = "uco"
 # {_ok, service_name} = Base.encode16("uco", case: :upper )
 
-{_ok, derivation_path_length} = Base.decode16("06")
+# {_ok, derivation_path_length} = Base.decode16("06")
 
-{_ok, coin_type} = Base.decode16("028A")
-{_ok, account} = Base.decode16("0000")
-{_ok, address_index} = Base.decode16("0000")
-derivation_path = coin_type <> account <> address_index
+# {_ok, coin_type} = Base.decode16("028A")
+# {_ok, account} = Base.decode16("0000")
+# {_ok, address_index} = Base.decode16("0000")
+# derivation_path = coin_type <> account <> address_index
+
+{_ok, derivation_path_length} = Base.decode16("0C")
+
+derivation_path = "m/650'/0'/0'"
+
+# size_str = derivation_path |> String.length |> Integer.to_string(16)
+
+
 {_ok, wallet_curve} = Base.decode16("02")
 {_ok, hash_type} = Base.decode16("00")
 
@@ -74,7 +82,7 @@ IO.puts(Base.encode16(service_name))
 IO.puts("\n Derivation Path Length: ")
 IO.puts(Base.encode16(derivation_path_length))
 
-IO.puts("\n Derivation Path (6 bytes): [Coin type = 650, account = 0, index = 0]")
+IO.puts("\n Derivation Path (" <> Base.encode16(derivation_path_length) <>":hex Bytes): [Coin type = 650, account = 0, index = 0]")
 IO.puts(Base.encode16(derivation_path))
 
 IO.puts("\nWallet Curve (0:ed25519, 1:nistp256, 2:secp256k1): ")
