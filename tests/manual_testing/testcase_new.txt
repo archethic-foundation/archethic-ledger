@@ -1,0 +1,92 @@
+
+----------------------------------------------------
+
+ Master Seed Length: 
+20
+
+Master Seed for Onchain Wallet (32 bytes)
+1A89B6EEBF7C3B39B2E5AD8B44A6CBD9D59382125BC41DA8EBFFE11E4ED2AF1B
+
+ No. of services: 
+01
+
+ Service Name Length: 
+03
+
+ Service Name: 
+75636F
+
+ Derivation Path Length: 
+0C
+
+ Derivation Path (0C:hex Bytes): [Coin type = 650, account = 0, index = 0]
+6D2F363530272F30272F3027
+
+Wallet Curve (0:ed25519, 1:nistp256, 2:secp256k1): 
+02
+
+ Hash Type: 0: SHA256 (sha2)
+1: SHA512 (sha2)
+2: SHA3_256 (keccak)
+3: SHA3_512 (keccak)
+4: BLAKE2B
+00
+
+Encoded Wallet (version,master seed len, master seed, number of services, service name len, service name, derivation path len, derivcation path, wallet curve, hash type):
+00000001201A89B6EEBF7C3B39B2E5AD8B44A6CBD9D59382125BC41DA8EBFFE11E4ED2AF1B010375636F0C6D2F363530272F30272F30270200
+
+----------------------------------------------------
+
+Wallet Key (AES256 CTR) for encrypting Onchain Wallet (32 bytes)
+0D9771CECDCDEFB29B030F69F23A1329AA56A00C11AF35BC969544CBDC633E21
+
+IV encrypting Onchain Wallet (SHA256(SHA256(Wallet Key)))[0:16]
+CDA3B3C9822EB14E8B943FACE005244B
+
+Encryption of Encoded Wallet (AES256 CTR):
+FC6659EFC3B68999B968136940C25FF0FB7241AE7B03C3D0CDCB76D03FE5CC35A2E4F201569DFCB6C26544D99DEB21FA12C7B7BABF38075293
+
+----------------------------------------------------
+
+ECDH Curve (0:ed25519, 1:nistp256, 2:secp256k1): 
+02
+
+Ephemeral Public Key
+04CB3DC7888D6045AE7BB6A2F80FB8919E0D01CFF3407643F22582BA5F7EDCC403D569ED5F9C30CCEE2CE3136BEE0D12C58564EA8D8A244B5E6DFEC04536B0182A
+
+Origin Device Public Key
+0456ADC116763F07B1CDC6EC8E2453FCB5F67DDD96123C0B4955D7BF82EAB20FF190F871F3C514D2E81391C7FF314F0F18D38899EC43A7085ABE2BD90B0D147F30
+
+ECDH Point x: ECDH(Origin Device Public Key, Ephemeral Private Key)
+8D35AA4A4F6753D64AFF7991439E7DDDAC85686988A348743BEE52216C746CEF
+
+----------------------------------------------------
+
+AES256 CBC Key: SHA512(SHA512(ECDH Point x))[0:32]
+D038B6163CA7B4C88B0C431E9BD5062AD031D64DA7984DC44E372C2C494D6A61
+
+IV: SHA512(SHA512(ECDH Point x))[32:48]
+FFF007E7CD6243BB7473AFAFDCFF2EF7
+
+Encryption of Wallet Key (AES256 CBC):
+CC5A9928A0F8C11D2DE8923C9E5E3267DBC51B4DDDA7CD496F2F331E0736B4B9
+
+----------------------------------------------------
+
+Authentication Seed: SHA512(SHA512(ECDH Point x))[48:64]
+8B5647BEE1D2756580104CB65649D7AA
+
+Authentication Key: SHA256(Authentication Seed)
+0439330175E606DFDE1673F96C4BC699BDDCB2C05535B6B24364AC3B18A11A97
+
+Authentication Tag: HMAC256(Authentication Key, Encrypted Wallet Key)[0:16]
+97B7E544F03670554D737EF76A948DB0
+
+----------------------------------------------------
+
+Encoding of Encrypted Wallet Key(ephemeral public key, authentication tag, encrypted wallet key):
+04CB3DC7888D6045AE7BB6A2F80FB8919E0D01CFF3407643F22582BA5F7EDCC403D569ED5F9C30CCEE2CE3136BEE0D12C58564EA8D8A244B5E6DFEC04536B0182A97B7E544F03670554D737EF76A948DB0CC5A9928A0F8C11D2DE8923C9E5E3267DBC51B4DDDA7CD496F2F331E0736B4B9
+
+----------------------------------------------------
+Interactive Elixir (1.13.3) - press Ctrl+C to exit (type h() ENTER for help)
+iex(1)> 

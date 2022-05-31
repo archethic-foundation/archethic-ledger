@@ -148,7 +148,7 @@ class ArchethicCommandBuilder:
                               p2=0x00,
                               cdata=b"")
 
-    def get_arch_address(self,  enc_oc_wallet, addr_index, display: bool = False):
+    def get_arch_address(self,  enc_oc_wallet, service_index, display: bool = False):
         """Command builder for GET_ARCH_ADDR.
 
         Parameters
@@ -157,8 +157,8 @@ class ArchethicCommandBuilder:
             Whether you want to display the address on the device.
         enc_oc_wallet: String<hex>
             The Encyrpted onchain wallet with key or in short encrypted key plus wallet
-        addr_index: string
-            The address index to which address need to be derived
+        service_index: string
+            The service index to which address need to be derived => each service has a derivation path which is defined in encoded wallet
 
         Returns
         -------
@@ -167,7 +167,7 @@ class ArchethicCommandBuilder:
         """
         
         # As per specification https://hackmd.io/0fKm_XjJQuu46ph6zP5doQ#Get-ArchEthic-Account-Address
-        cdata: bytes = bytes.fromhex(addr_index + enc_oc_wallet)
+        cdata: bytes = bytes.fromhex(service_index + enc_oc_wallet)
 
         return self.serialize(cla=self.CLA,
                                 ins=InsType.INS_GET_ARCH_ADDR,
@@ -175,15 +175,15 @@ class ArchethicCommandBuilder:
                                 p2=0x00,
                                 cdata=cdata)
 
-    def sign_txn_hash_build(self, enc_oc_wallet, addr_index, receiver_addr, amount, display: bool = False):
+    def sign_txn_hash_build(self, enc_oc_wallet, service_index, receiver_addr, amount, display: bool = False):
         """Command builder for SIGN_TX.
 
         Parameters
         ----------
         enc_oc_wallet: String<hex>
             The Encyrpted onchain wallet with key or in short encrypted key plus wallet
-        addr_index: string
-            The address index to which address need to be derived
+        service_index: string
+            The service index to which derivation path's address need to be derived
         receiver_addr: string
             The receiver address which will receive the amount
         amount: string
@@ -197,7 +197,7 @@ class ArchethicCommandBuilder:
             APDU command for SIGN_TX.
         """
 
-        cdata: bytes = bytes.fromhex(addr_index + receiver_addr + amount + enc_oc_wallet)
+        cdata: bytes = bytes.fromhex(service_index + receiver_addr + amount + enc_oc_wallet)
 
         return self.serialize(cla=self.CLA,
                                 ins=InsType.INS_SIGN_TX,

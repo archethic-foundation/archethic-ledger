@@ -21,9 +21,9 @@
 static action_validate_cb g_validate_hash_callback;
 
 static char g_hash[67];
-static char g_addr[72];
+static char g_addr[70];
 static char g_amount[30];
-static char g_bip44_path[40];
+static char g_derivation_path[34];
 static tx_struct_t g_tx;
 static onchain_wallet_struct_t g_Wallet;
 
@@ -53,8 +53,8 @@ UX_STEP_NOCB(ux_display_txn_amount,
 UX_STEP_NOCB(ux_display_hash_addr_bip44,
              bnnn_paging,
              {
-                 .title = "Signing BIP44 Path",
-                 .text = g_bip44_path,
+                 .title = "Sig w/ Derivation Path",
+                 .text = g_derivation_path,
              });
 
 // Step with approve button
@@ -98,9 +98,10 @@ void ui_validate_sign_hash(bool choice)
          * signing key => address index
          * returns the Public Key + ASN SIGN
          */
-        performECDSA(g_tx.txHash, g_tx.txHashLen, g_tx.address_index,
-                     g_Wallet.encodedWallet, &g_Wallet.walletLen, 0,
-                     g_Wallet.encodedWallet, &g_Wallet.walletLen);
+        
+        performECDSA(g_tx.txHash, g_tx.txHashLen, 0,
+                     g_Wallet.encodedWallet, &g_Wallet.walletLen, g_tx.service_index,
+                     g_tx.seek_bytes, g_Wallet.encodedWallet, &g_Wallet.walletLen);
 
         memcpy(G_io_apdu_buffer, g_tx.txHash, g_tx.txHashLen);
         memcpy(G_io_apdu_buffer + g_tx.txHashLen, g_Wallet.encodedWallet, g_Wallet.walletLen);
@@ -109,21 +110,29 @@ void ui_validate_sign_hash(bool choice)
     }
     else
     {
+        // Reset Buffer to all 0
+        explicit_bzero(G_io_apdu_buffer, sizeof(G_io_apdu_buffer));
         io_exchange_with_code(SW_USER_REJECTED, 0);
     }
 
     ui_menu_main();
 }
 
+// data buffer is encoded as -> service_index + receiver + amount + enc_key + enc_wallet
 void handleSignHash(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint16_t dataLength, volatile unsigned int *flags)
 {
     // convert address index (big endian)
-    uint32_t address_index = 0;
-    for (int c = 0; c < 4; c++)
-        address_index |= (uint32_t)dataBuffer[c] << 8 * (3 - c);
-    g_tx.address_index = address_index;
-    dataBuffer += 4;
-    dataLength -= 4;
+    // uint32_t address_index = 0;
+    // for (int c = 0; c < 4; c++)
+    //     address_index |= (uint32_t)dataBuffer[c] << 8 * (3 - c);
+    // g_tx.address_index = address_index;
+    // dataBuffer += 4;
+    // dataLength -= 4;
+
+    uint8_t service_index = dataBuffer[0];
+    g_tx.service_index = service_index;
+    dataBuffer += 1;
+    dataLength -= 1;
 
     // receiver address
     uint8_t addrLen = 0;
@@ -151,7 +160,9 @@ void handleSignHash(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint16_t dataLe
         dispAmt |= (uint64_t)dataBuffer[c] << 8 * (7 - c);
 
     char test_g[30] = {0};
+
     format_fpu64(test_g, sizeof(test_g), dispAmt, 8);
+
     memset(g_amount, 0, sizeof(g_amount));
     memcpy(g_amount, test_g, 30);
     dataBuffer += 8;
@@ -171,16 +182,25 @@ void handleSignHash(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint16_t dataLe
         io_exchange_with_code(SW_WRONG_WALLET, g_Wallet.walletLen);
         return;
     }
-    else
-        *flags |= IO_ASYNCH_REPLY;
+    // else
+    *flags |= IO_ASYNCH_REPLY;
+
+    // Wallet Successfully Decrypted Here.
+
+    uint32_t seek_bytes = 0;
+    // get derivation path for display and seek bytes for current service
+    uint8_t derivationPathLen;
+    memset(g_derivation_path, 0, sizeof(g_derivation_path));
+    getDerivationPath(service_index, g_Wallet.encodedWallet, g_Wallet.walletLen, 0, g_derivation_path, &derivationPathLen, &seek_bytes);
 
     // get sender address using address index + 1, according to specs V1
-    generateArchEthicAddress(0, address_index + 1, g_Wallet.encodedWallet, &g_Wallet.walletLen, 0, g_tx.senderAddr, &g_tx.senderAddrLen);
 
-    // get BIP path for display
-    uint8_t bip44pathlen;
-    memset(g_bip44_path, 0, sizeof(g_bip44_path));
-    getBIP44Path(address_index, g_Wallet.encodedWallet, g_Wallet.walletLen, 0, g_bip44_path, &bip44pathlen);
+    g_tx.seek_bytes = seek_bytes;
+
+    // Offset address_index by +1
+
+    generateArchEthicAddress(0, service_index, g_Wallet.encodedWallet, &g_Wallet.walletLen, 0, g_tx.senderAddr, &g_tx.senderAddrLen, seek_bytes, 1);
+
 
     // create transaction and get its hash (sha256)
     getTransactionHash(g_tx.senderAddr, g_tx.senderAddrLen, g_tx.receiveAddr, g_tx.receiveAddrLen, g_tx.amount, g_tx.txHash, &g_tx.txHashLen);
@@ -189,6 +209,6 @@ void handleSignHash(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint16_t dataLe
 
     // set gui triggers
     g_validate_hash_callback = &ui_validate_sign_hash;
-    g_Wallet.walletLen = sizeof(g_Wallet.encodedWallet);
+
     ux_flow_init(0, ux_display_sign_hash_main, NULL);
 }

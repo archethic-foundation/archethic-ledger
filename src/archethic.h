@@ -27,9 +27,11 @@
 
 typedef void (*action_validate_cb)(bool);
 
+#define MAX_ENCODE_WALLET_LEN 200
+
 typedef struct
 {
-    uint8_t encodedWallet[200];
+    uint8_t encodedWallet[MAX_ENCODE_WALLET_LEN];
     uint8_t walletLen;
 } onchain_wallet_struct_t;
 
@@ -50,6 +52,8 @@ typedef struct
     uint8_t senderAddr[70];
     uint8_t senderAddrLen;
     uint32_t address_index;
+    uint8_t service_index;
+    uint32_t seek_bytes;
 } tx_struct_t;
 
 void io_exchange_with_code(uint16_t code, uint16_t tx);
@@ -62,22 +66,22 @@ void deriveArchEthicKeyPair(cx_curve_t curve, uint32_t coin_type, uint32_t accou
 
 void performECDH(uint8_t *ephPublicKey, uint8_t ephPublicKeySize, uint8_t *ecdhPointX);
 
-void performECDSA(uint8_t *txHash, uint8_t txHashLen, uint32_t address_index,
-                  uint8_t *encoded_wallet, uint8_t *wallet_len, uint8_t sequence_no,
+void performECDSA(uint8_t *txHash, uint8_t txHashLen, uint32_t address_index_offset,
+                  uint8_t *encoded_wallet, uint8_t *wallet_len, uint8_t service_index, uint32_t seek_bytes,
                   uint8_t *asn_sign, uint8_t *sign_len);
 
 void decryptWallet(uint8_t *ecdhPointX, uint8_t ecdhPointLen,
                    uint8_t *dataBuffer, uint8_t dataLen,
                    uint8_t *encodedWallet, uint8_t *walletLen);
 
-void generateKeyFromWallet(uint32_t address_index, uint8_t *encoded_wallet, uint8_t *wallet_len, uint32_t sequence_no,
+void generateKeyFromWallet(uint32_t address_index_offset, uint8_t *encoded_wallet, uint8_t *wallet_len, uint8_t service_index, uint32_t seek_bytes,
                            uint8_t *curve_type, cx_ecfp_private_key_t *privateKey, cx_ecfp_public_key_t *publicKey);
 
-void generateArchEthicAddress(uint8_t hash_type, uint32_t address_index,
+void generateArchEthicAddress(uint8_t hash_type, uint8_t service_index,
                               uint8_t *encoded_wallet, uint8_t *wallet_len, uint32_t sequence_no,
-                              uint8_t *address, uint8_t *address_len);
+                              uint8_t *address, uint8_t *address_len, uint32_t seek_bytes, uint32_t address_index_offset);
 
-void getBIP44Path(uint32_t address_index, uint8_t *encoded_wallet, uint8_t wallet_len, uint8_t sequence_no, char *string_bip_44, uint8_t *bip44_len);
+void getDerivationPath(uint8_t service_index, uint8_t *encoded_wallet, uint8_t wallet_len, uint8_t sequence_no, char *string_derivation_path, uint8_t *derivation_path_len, uint32_t *seek_bytes);
 
 void getTransactionHash(uint8_t *senderAddr, uint8_t senderAddrLen,
                         uint8_t *receiveAddr, uint8_t receiveAddrLen,

@@ -21,7 +21,8 @@
 static action_validate_cb g_validate_callback;
 static char g_public_key[135]; // 1 + 4 + 130
 
-static char g_bip44_path[60];
+static char g_derivation_path[30];
+// Global Structure
 cx_ecfp_public_key_t publicKey;
 
 // Step with icon and text
@@ -34,8 +35,8 @@ UX_STEP_NOCB(ux_display_confirm_addr_step, bnnn_paging, {
 UX_STEP_NOCB(ux_display_path_step,
              bnnn_paging,
              {
-                 .title = "bip44 Path",
-                 .text = g_bip44_path,
+                 .title = "Derivation Path",
+                 .text = g_derivation_path,
              });
 
 // Step with title/text for public key
@@ -101,14 +102,15 @@ void handleGetPublicKey(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint16_t da
 {
     *flags |= IO_ASYNCH_REPLY;
 
-    memset(g_bip44_path, 0, sizeof(g_bip44_path));
+    memset(g_derivation_path, 0, sizeof(g_derivation_path));
     memset(g_public_key, 0, sizeof(g_public_key));
 
     getOriginPublicKey(&publicKey);
+    // Append 0204 in front as per origin public key encoding
     snprintf(g_public_key, sizeof(g_public_key), "0204%.*H", publicKey.W_len, publicKey.W);
 
-    // g_bip44_path = "m/44'/650'/ffff'/0'/0'" always
-    strncpy(g_bip44_path, "m/44'/650'/ffff'/0'/0'", 60);
+    // g_derivation_path = "m/650'/ffff'/0'" always
+    strncpy(g_derivation_path, "m/650'/ffff'/0'", 30);
 
     g_validate_callback = &ui_action_validate_pubkey;
     ux_flow_init(0, ux_display_pubkey_flow, NULL);

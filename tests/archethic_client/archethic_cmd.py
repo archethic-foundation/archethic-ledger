@@ -110,9 +110,9 @@ class ArchethicCommand:
 
         return curve_type, device_origin, path_form, x, y
 
-    def get_arch_addr(self, hid, enc_oc_wallet, addr_index, display: bool = False):
+    def get_arch_addr(self, hid, enc_oc_wallet, service_index, display: bool = False):
         self.transport.send_raw(
-            self.builder.get_arch_address(enc_oc_wallet, addr_index, display=display,)
+            self.builder.get_arch_address(enc_oc_wallet, service_index, display=display,)
         )  # type: int, bytes
 
         if (not hid):
@@ -144,11 +144,11 @@ class ArchethicCommand:
 
         return curve_type, hash_type, hash_enc_pub_key
 
-    def sign_txn_hash(self, hid, enc_oc_wallet, addr_index, receiver_addr, amount, display: bool = False):
+    def sign_txn_hash(self, hid, enc_oc_wallet, service_index, receiver_addr, amount, display: bool = False):
 
         self.transport.send_raw(
             self.builder.sign_txn_hash_build(
-                enc_oc_wallet, addr_index, receiver_addr, amount, display)
+                enc_oc_wallet, service_index, receiver_addr, amount, display)
         )  # type: int, bytes
 
         if (not hid):
@@ -170,8 +170,12 @@ class ArchethicCommand:
         #  APDU Response have following
         # Final Tx Hash (SHA256) || Corresponding public key from whose private key the signature was made ||  ASN DER Signature ||
 
+        print("len res: ", len(response))
+
         offset = 0
         final_txn_hash = response[offset: offset + 64]
+        print(final_txn_hash)
+
         offset += 64
 
         curve_type = response[offset: offset + 2]
@@ -180,8 +184,10 @@ class ArchethicCommand:
         # Check for the form 04 mean it is uncompressed
         assert(pubkey_tag == "04")
         public_key = response[offset:offset+67*2]
+        print(public_key)
         offset += 67*2
 
+        print("Offset After Extracting PublicKey: ", offset)
         sign_tag: hex = response[offset: offset + 2]
         # Check if sign tag
         assert(sign_tag == "30")
