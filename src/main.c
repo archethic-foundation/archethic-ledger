@@ -15,6 +15,7 @@ bolos_ux_params_t G_ux_params;
 #define INS_GET_VERSION 0x01
 #define INS_GET_PUBLIC_KEY 0x02
 #define INS_GET_ADDRESS 0x04
+#define INS_SIGN_HASH_ORIGIN 0x06
 #define INS_SIGN_HASH 0x08
 
 typedef void handler_fn_t(uint8_t p1, uint8_t p2, uint8_t *dataBuffer, uint16_t dataLength, volatile unsigned int *flags);
@@ -23,6 +24,7 @@ handler_fn_t handleGetVersion;
 handler_fn_t handleGetPublicKey;
 handler_fn_t handleGetAddress;
 handler_fn_t handleSignHash;
+handler_fn_t handleSignHashOrigin;
 
 static handler_fn_t *lookupHandler(uint8_t ins)
 {
@@ -36,6 +38,8 @@ static handler_fn_t *lookupHandler(uint8_t ins)
 		return handleGetAddress;
 	case INS_SIGN_HASH:
 		return handleSignHash;
+	case INS_SIGN_HASH_ORIGIN:
+		return handleSignHashOrigin;
 	default:
 		return NULL;
 	}

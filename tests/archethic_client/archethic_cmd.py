@@ -196,3 +196,51 @@ class ArchethicCommand:
         offset += (int(sign_len, base=16)*2) + 4
 
         return final_txn_hash, curve_type, origin_type, pubkey_tag, public_key, sign_tag, sign_len, asn_der_sign
+
+    def sign_txn_hash_origin(self, hid, txnHashLen, txnHash, display: bool = False):
+        self.transport.send_raw(
+            self.builder.sign_txn_hash_origin_build(
+                txnHashLen, txnHash, display)
+        )  # type: int, bytes
+
+        if (not hid):
+            button = "http://127.0.0.1:5000/button/"
+            url = button + "right"
+            payload = '{"action":"press-and-release"}'
+            for _ in range(6):
+                res = requests.post(url, data=payload)
+
+            url = button + "both"
+            res = requests.post(url, data=payload)
+
+        sw, response = self.transport.recv()
+        if sw != 0x9000:
+            raise DeviceException(error_code=sw, ins=InsType.INS_GET_PUBLIC_KEY)
+
+        response = response.hex()
+
+        #  APDU Response have following
+        # Final Tx Hash (SHA256) || Corresponding public key from whose private key the signature was made ||  ASN DER Signature ||
+
+        print("len res: ", len(response))
+
+        offset = 0
+
+        curve_type = response[offset: offset + 2]
+        origin_type = response[offset + 2: offset + 4]
+        pubkey_tag = response[offset + 4: offset + 6]
+        # Check for the form 04 mean it is uncompressed
+        assert(pubkey_tag == "04")
+        public_key = response[offset:offset+67*2]
+        print(public_key)
+        offset += 67*2
+
+        print("Offset After Extracting PublicKey: ", offset)
+        sign_tag: hex = response[offset: offset + 2]
+        # Check if sign tag
+        assert(sign_tag == "30")
+        sign_len = response[offset + 2: offset + 4]
+        asn_der_sign = response[offset: offset + 4 + (int(sign_len, base=16)*2)]
+        offset += (int(sign_len, base=16)*2) + 4
+
+        return curve_type, origin_type, pubkey_tag, public_key, sign_tag, sign_len, asn_der_sign

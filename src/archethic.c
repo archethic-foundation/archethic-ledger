@@ -163,7 +163,7 @@ void generateKeyFromWallet(uint32_t address_index_offset, uint8_t *encoded_walle
 
     // Parse the Derivation Path into components here
     int path_len = encoded_wallet[seek_bytes];
-   
+
     char temp_der_path[30];
     explicit_bzero(temp_der_path, sizeof(temp_der_path));
 
@@ -220,15 +220,12 @@ void generateKeyFromWallet(uint32_t address_index_offset, uint8_t *encoded_walle
         }
     }
 
-    // PRINTF("\n Coin Type %d \n", coin_type);
-    // PRINTF("\n Account %d \n", account);
-    // PRINTF("\n Addr Index %d \n", address_index);
-
     // Offset the index if any
     address_index += address_index_offset;
 
     cx_curve_t curve;
     *curve_type = encoded_wallet[seek_bytes + 1 + path_len];
+
     switch (*curve_type)
     {
     case 0:
