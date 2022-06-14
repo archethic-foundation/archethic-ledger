@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "archethic.h": "c",
+        "os.h": "c",
+        "format.h": "c",
+        "menu.h": "c"
+    }
+}
