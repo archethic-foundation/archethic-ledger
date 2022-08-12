@@ -7,5 +7,5 @@ def test_get_app_and_version(cmd, hid):
         print(app_name)
         print(version)
 
-        assert app_name == "ARCHEthic"
+        assert app_name == "Archethic"
         assert version == "1.0.1"
