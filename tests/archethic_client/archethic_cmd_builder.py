@@ -32,6 +32,7 @@ class InsType(enum.IntEnum):
     INS_GET_VERSION = 0x01
     INS_GET_PUBLIC_KEY = 0x02
     INS_GET_ARCH_ADDR = 0x04
+    INS_SIGN_ORIG_TX = 0x06
     INS_SIGN_TX = 0x08
 
 
@@ -201,6 +202,30 @@ class ArchethicCommandBuilder:
 
         return self.serialize(cla=self.CLA,
                                 ins=InsType.INS_SIGN_TX,
+                                p1=0x01 if display else 0x00,
+                                p2=0x00,
+                                cdata=cdata)
+    
+    def sign_txn_hash_origin_build(self, txnHashLen, txnHash, display: bool = False):
+        """Command builder for SIGN_TX.
+
+        Parameters
+        ----------
+        txnHashLen: String<hex>
+            Length of the Hash Sent for signing
+        txnHash: String<hex>
+            Hash to be signed of length mentioned above
+
+        Returns
+        -------
+        bytes
+            APDU command for SIGN_TX.
+        """
+
+        cdata: bytes = bytes.fromhex(txnHashLen + txnHash)
+
+        return self.serialize(cla=self.CLA,
+                                ins=InsType.INS_SIGN_ORIG_TX,
                                 p1=0x01 if display else 0x00,
                                 p2=0x00,
                                 cdata=cdata)
