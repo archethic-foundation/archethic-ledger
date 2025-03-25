@@ -32,7 +32,7 @@ master_seed = :crypto.strong_rand_bytes(32)
 # {_ok, master_seed_length} =
 #   master_seed |> :erlang.byte_size() |> Integer.to_string() |> Base.encode16(case: :upper)
 
-{_ok, master_seed_length } = Base.decode16("20")
+{_ok, master_seed_length} = Base.decode16("20")
 
 {_ok, total_services} = Base.decode16("01")
 
@@ -54,7 +54,6 @@ service_name = "uco"
 derivation_path = "m/650'/0'/0'"
 
 # size_str = derivation_path |> String.length |> Integer.to_string(16)
-
 
 {_ok, wallet_curve} = Base.decode16("02")
 {_ok, hash_type} = Base.decode16("00")
@@ -82,7 +81,12 @@ IO.puts(Base.encode16(service_name))
 IO.puts("\n Derivation Path Length: ")
 IO.puts(Base.encode16(derivation_path_length))
 
-IO.puts("\n Derivation Path (" <> Base.encode16(derivation_path_length) <>":hex Bytes): [Coin type = 650, account = 0, index = 0]")
+IO.puts(
+  "\n Derivation Path (" <>
+    Base.encode16(derivation_path_length) <>
+    ":hex Bytes): [Coin type = 650, account = 0, index = 0]"
+)
+
 IO.puts(Base.encode16(derivation_path))
 
 IO.puts("\nWallet Curve (0:ed25519, 1:nistp256, 2:secp256k1): ")
@@ -196,6 +200,46 @@ IO.puts(
 IO.puts(Base.encode16(encoded_wallet_key))
 
 IO.puts("\n----------------------------------------------------")
+
+IO.puts("\n Encoding a Simple Transaction")
+
+# Transaction encoding
+# tx_version | senderAddr | tx_type | code_size | content_size
+# | ownership_length | total_uco_transfers | recieverAddr | amount | total_nft_transfers | recipients
+
+{_ok, tx_version} = Base.decode16("00000001")
+{_ok, tx_type} = Base.decode16("FD")
+{_ok, code_size} = Base.decode16("00000000")
+{_ok, content_size} = Base.decode16("00000000")
+{_ok, ownership_length} = Base.decode16("00")
+{_ok, total_uco_transfers} = Base.decode16("01")
+{_ok, total_nft_transfers} = Base.decode16("00")
+{_ok, recipients} = Base.decode16("00")
+
+# 151 UC0 in hex, 1 UCO = 10^8
+{_ok, amount} = Base.decode16("000000038407B700")
+
+{_ok, receiver_addr} = Base.decode16("020019CA33A6CA9E69B5C29E6E8497CC5AC9675952F847347709AD39C92C1B1B5313")
+{_ok, sender_addr} = Base.decode16("02008C9C7EE489E47E3867CD8CDADDA4867C6A874880E25CF68346D05B5C985CA1ED")
+
+encoded_txn = tx_version <> sender_addr <> tx_type <> code_size <> content_size <> ownership_length <> total_uco_transfers <> receiver_addr <> amount <> total_nft_transfers <> recipients
+
+IO.puts("Encoded Transaction:")
+IO.puts(Base.encode16(encoded_txn))
+
+#  Should be Equal to this
+# "0000000102008C9C7EE489E47E3867CD8CDADDA4867C6A874880E25CF68346D05B5C985CA1EDFD00000000000000000001020019CA33A6CA9E69B5C29E6E8497CC5AC9675952F847347709AD39C92C1B1B5313000000038407B7000000"
+
+txn_hash = :crypto.hash(:sha256, encoded_txn)
+
+IO.puts("Transaction Hash: ---")
+IO.puts(Base.encode16(txn_hash))
+
+# From Script
+# 7829BE6ADB23E83AF08BE2F27977EE8FDA4E2FE6D40A514DAF1BE13A020F7CB2
+# From Device
+# 7829BE6ADB23E83AF08BE2F27977EE8FDA4E2FE6D40A514DAF1BE13A020F7CB2
+
 
 """
 {_ok, address_header} = Base.decode16("E0040000")

@@ -29,6 +29,8 @@ typedef void (*action_validate_cb)(bool);
 
 #define MAX_ENCODE_WALLET_LEN 200
 
+
+
 typedef struct
 {
     uint8_t encodedWallet[MAX_ENCODE_WALLET_LEN];
@@ -55,6 +57,7 @@ typedef struct
     uint8_t service_index;
     uint32_t seek_bytes;
 } tx_struct_t;
+
 
 void io_exchange_with_code(uint16_t code, uint16_t tx);
 
